@@ -619,6 +619,7 @@ dependencies = [
     { name = "anthropic" },
     { name = "backoff" },
     { name = "datasets" },
+    { name = "llama-cpp-python" },
     { name = "matplotlib" },
     { name = "numpy" },
     { name = "openai" },
@@ -637,6 +638,7 @@ requires-dist = [
     { name = "anthropic", specifier = ">=0.34.1" },
     { name = "backoff", specifier = ">=2.2.1" },
     { name = "datasets", specifier = ">=2.21.0" },
+    { name = "llama-cpp-python", specifier = ">=0.2.90" },
     { name = "matplotlib", specifier = ">=3.9.2" },
     { name = "numpy", specifier = ">=1.26.4" },
     { name = "openai", specifier = ">=1.42.0" },
@@ -911,6 +913,18 @@ sdist = { url = "https://files.pythonhosted.org/packages/bc/dc/be154737802b7beeb
 wheels = [
     { url = "https://files.pythonhosted.org/packages/25/73/97e2c7936d3b0445b73baabdc86591bc957635293d032ce007ba1dd73ac6/litellm-1.44.7-py3-none-any.whl", hash = "sha256:7671b2e5287a4876a8b05f8025d6a976e22ae9c61e30355bf28c1d25e74c17df", size = 8561074 },
 ]
+
+[[package]]
+name = "llama-cpp-python"
+version = "0.2.90"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "diskcache" },
+    { name = "jinja2" },
+    { name = "numpy" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1f/19/89836022affc1bf470e2485e28872b489254a66fe587155edba731a07112/llama_cpp_python-0.2.90.tar.gz", hash = "sha256:419b041c62dbdb9f7e67883a6ef2f247d583d08417058776be0bff05b4ec9e3d", size = 63762953 }
 
 [[package]]
 name = "markdown-it-py"
