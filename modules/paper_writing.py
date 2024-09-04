@@ -405,7 +405,7 @@ Ensure the citation is well-integrated into the text.'''
 
 # PERFORM WRITEUP
 def perform_writeup(
-    idea, folder_name, coder, cite_client, cite_model, num_cite_rounds=20
+    folder_name, coder, cite_client, cite_model, num_cite_rounds=20
 ):
     # CURRENTLY ASSUMES LATEX
     abstract_prompt = f"""We've provided the `latex/template.tex` file to the project. We will be filling it in section by section.
@@ -515,4 +515,4 @@ First, re-think the Title if necessary. Keep this concise and descriptive of the
             .replace(r"}}", "}")
         )
 
-    generate_latex(coder, folder_name, f"{folder_name}/{idea['Name']}.pdf")
+    generate_latex(coder, folder_name, f"{folder_name}/template.pdf")

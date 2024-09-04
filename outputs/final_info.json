@@ -1,0 +1,63 @@
+{
+    "experiment_name": "Comparison of Proposed Method vs Baseline",
+    "date": "2024-09-04",
+    "methods": {
+      "proposed": {
+        "name": "Proposed Method",
+        "description": "Brief description of the proposed method"
+      },
+      "baseline": {
+        "name": "Baseline Method",
+        "description": "Brief description of the baseline method"
+      }
+    },
+    "metrics": ["accuracy", "precision", "recall", "f1_score"],
+    "datasets": ["dataset1", "dataset2", "dataset3"],
+    "results": {
+      "main_comparison": [
+        {
+          "dataset": "dataset1",
+          "proposed": {
+            "accuracy": 0.95,
+            "precision": 0.94,
+            "recall": 0.96,
+            "f1_score": 0.95
+          },
+          "baseline": {
+            "accuracy": 0.90,
+            "precision": 0.89,
+            "recall": 0.91,
+            "f1_score": 0.90
+          }
+        }
+      ],
+      "ablation_study": [
+        {
+          "name": "Without Feature A",
+          "description": "Proposed method without Feature A",
+          "results": [
+            {
+              "dataset": "dataset1",
+              "metrics": {
+                "accuracy": 0.93,
+                "precision": 0.92,
+                "recall": 0.94,
+                "f1_score": 0.93
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "hyperparameters": {
+      "proposed": {
+        "learning_rate": 0.001,
+        "batch_size": 32
+      },
+      "baseline": {
+        "learning_rate": 0.01,
+        "batch_size": 64
+      }
+    },
+    "additional_notes": "Any additional information or observations about the experiment"
+  }
