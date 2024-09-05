@@ -1,0 +1,8 @@
+{
+    "research_goal": "${RESEARCH_OUTPUT_PATH}/research_goal.md",
+    "research_problem": "${RESEARCH_OUTPUT_PATH}/research_problem.md",
+    "experiment_design": "${RESEARCH_OUTPUT_PATH}/experiment_design.md",
+    "experiment_code": "${RESEARCH_OUTPUT_PATH}/experiment.py",
+    "experiment_results": "${RESEARCH_OUTPUT_PATH}/experiment_results.json",
+    "research_paper": "${RESEARCH_OUTPUT_PATH}/latex/template.tex"
+}

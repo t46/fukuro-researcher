@@ -12,7 +12,7 @@ import openai
 import anthropic
 
 llm_name = "gemma2:9b"
-coder_llm_name = "ollama/gemma2:9b"
+coder_llm_name = "ollama/gemma2:9b" #deepseek/deepseek-coder, "deepseek-coder-v2-0724"  # deepseek-coder-v2-0724 は aider coding benchmark で claude sonnet に続いて2番目の性能、ただお金はかかるっぽい
 
 # このファイルがあるディレクトリの中にある outputs ディレクトリ、なければ作成
 output_directory = os.path.join(os.path.dirname(__file__), "outputs")
@@ -33,7 +33,7 @@ def setup_coder(coder_llm_name, visible_file_names):
         io=io,
         stream=False,
         use_git=False,
-        edit_format="diff",
+        edit_format="diff",  # diff にすると、ファイルの中身を変更するときに、変更された部分だけを表示する
     )
     return coder
 
