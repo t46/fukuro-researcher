@@ -5,7 +5,6 @@ from datasets import concatenate_datasets
 from tqdm import tqdm
 from transformers import get_linear_schedule_with_warmup
 from torch.utils.data import DataLoader
-# from p2m_modules.modules import tokenize_dataset
 from dataset_preparation import tokenize_dataset
 import datasets
 import torch.optim as optim
@@ -73,19 +72,25 @@ class Algorithm:
 
     # モデルによる推論&テストデータによる評価（loss ではなく）
     def run_inference(self, test_dataset: datasets.Dataset):
+        def collate_fn(batch):  # TODO: 別の場所に移す
+            input_ids = torch.tensor([item['input_ids'] for item in batch])
+            attention_mask = torch.tensor([item['attention_mask'] for item in batch])
+            return {
+                'input_ids': input_ids,
+                'attention_mask': attention_mask
+            }
         test_dataset = tokenize_dataset(test_dataset, self.tokenizer, self.tokenizer.model_max_length)
-        test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
+        test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False, collate_fn=collate_fn)
 
         all_outputs = []
         self.model.eval()
         with torch.no_grad():
             for batch in tqdm(test_loader, desc="Evaluating"):
-                input_ids = batch['input_ids'].to(device)
-                attention_mask = batch['attention_mask'].to(device)
-                labels = batch['labels'].to(device)
-
-                outputs = self.model(input_ids, attention_mask=attention_mask, labels=labels)
-                all_outputs.append(outputs.logits.argmax(dim=-1).tolist())
+                input_ids = batch['input_ids'].to(self.device)
+                attention_mask = batch['attention_mask'].to(self.device)
+                
+                outputs = self.model(input_ids, attention_mask=attention_mask)
+                all_outputs.extend(outputs.logits.argmax(dim=-1).cpu().tolist())
 
         return all_outputs
     
@@ -121,9 +126,10 @@ if __name__ == "__main__":
     from model_preparation import prepare_model
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    prompt = "hogehoge"
-    dataset = prepare_dataset(prompt)
-    model, tokenizer = prepare_model(prompt)
+    prompt_dataset = "mrpc"
+    prompt_model = "gpt2"
+    dataset = prepare_dataset(prompt_dataset)
+    model, tokenizer = prepare_model(prompt_model)
 
     algorithm = Algorithm(model, tokenizer, device)
     outputs = algorithm(dataset, is_train_included=False)
@@ -132,3 +138,5 @@ if __name__ == "__main__":
     new_outputs = new_algorithm(dataset, is_train_included=False)
 
     compare_and_evaluate_algorithms(outputs, new_outputs)
+
+    print("Finished!!")

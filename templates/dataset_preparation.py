@@ -62,11 +62,11 @@ def process_ai_response(response):
 def identify_feature_name(feature_names):
     prompt = f"""
     Given these feature names: {', '.join(feature_names)}. 
-    Identify the features that correspond to 'input' and 'output'.
+    Identify the **single** feature that corresponds to 'input' and 'output', respectively. Don't select multiple features.
     Return a Python dictionary with 'input' and 'output' as keys and the corresponding feature names as values.
     {{
-        "input": "...",
-        "output": "..."
+        "input": str,
+        "output": str
     }}
     """
     
@@ -80,11 +80,11 @@ def identify_feature_name(feature_names):
 def identify_split_name(split_names):
     prompt = f"""
     Given these split names: {', '.join(split_names)}. 
-    Identify the splits that correspond to 'train' and 'test'.
+    Identify the **single** split that corresponds to 'train' and 'test', respectively. Don't select multiple splits.
     Return a Python dictionary with 'train' and 'test' as keys and the corresponding split names as values.
     {{
-        "train": "...",
-        "test": "..."
+        "train": str,
+        "test": str
     }}
     """
     
@@ -102,16 +102,13 @@ def rename_dataset_with_ai(dataset):
 
     new_dataset = DatasetDict()
 
-    train_data = {
-        feature_name_map["input"]: dataset[split_name_map["train"]][feature_name_map["input"]],
-        feature_name_map["output"]: dataset[split_name_map["train"]][feature_name_map["output"]]
-    }
-    test_data = {
-        feature_name_map["input"]: dataset[split_name_map["test"]][feature_name_map["input"]],
-        feature_name_map["output"]: dataset[split_name_map["test"]][feature_name_map["output"]]
-    }
-    new_dataset["train"] = Dataset.from_dict(train_data)
-    new_dataset["test"] = Dataset.from_dict(test_data)
+    for split in ["train", "test"]:
+        original_split = split_name_map[split]
+        new_data = {
+            "input": dataset[original_split][feature_name_map["input"]],
+            "output": dataset[original_split][feature_name_map["output"]]
+        }
+        new_dataset[split] = Dataset.from_dict(new_data)
 
     return new_dataset
 
