@@ -3,11 +3,12 @@
 import torch
 from datasets import concatenate_datasets
 from tqdm import tqdm
-from transformers import AdamW, get_linear_schedule_with_warmup
+from transformers import get_linear_schedule_with_warmup
 from torch.utils.data import DataLoader
-from p2m_modules.modules import tokenize_dataset
+# from p2m_modules.modules import tokenize_dataset
+from dataset_preparation import tokenize_dataset
 import datasets
-
+import torch.optim as optim
 
 class Algorithm:
     def __init__(self, model, tokenizer, device):
@@ -33,7 +34,8 @@ class Algorithm:
         train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
 
         # Set up optimizer and scheduler
-        optimizer = AdamW(model.parameters(), lr=5e-5, weight_decay=0.01)
+        optimizer_name = "AdamW"
+        optimizer = getattr(optim, optimizer_name)(model.parameters(), lr=5e-5, weight_decay=0.01)
         total_steps = len(train_loader) * epochs
         scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=total_steps)
 
@@ -115,7 +117,8 @@ def compare_and_evaluate_algorithms(outputs, new_outputs):
             writer.writerow([algorithm, ...])
 
 if __name__ == "__main__":
-    from p2m_modules.modules import prepare_dataset, prepare_model
+    from dataset_preparation import prepare_dataset
+    from model_preparation import prepare_model
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     prompt = "hogehoge"

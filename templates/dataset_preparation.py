@@ -7,7 +7,7 @@ import os
 import re
 import torch
 from torchvision import transforms
-
+import datasets
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from datasets import load_dataset
@@ -59,15 +59,15 @@ def process_ai_response(response):
     
     return evaluate_dict_safely(dict_str)
 
-def change_feature_name(feature_names):
+def identify_feature_name(feature_names):
     prompt = f"""
     Given these feature names: {', '.join(feature_names)}. 
-    Rename them according to these rules:
-    0. If "input" and "label" are included, keep them as is.
-    1. If "input" is not included, rename only one feature most related to input to "input".
-    2. If "label" is not included, rename only one feature most related to label to "label".
-    3. Leave other features unchanged.
-    Return a Python dictionary with old names as keys and new names as values. label only the dictionary.
+    Identify the features that correspond to 'input' and 'output'.
+    Return a Python dictionary with 'input' and 'output' as keys and the corresponding feature names as values.
+    {{
+        "input": "...",
+        "output": "..."
+    }}
     """
     
     response = run_llm(
@@ -77,15 +77,15 @@ def change_feature_name(feature_names):
     
     return process_ai_response(response)
 
-def change_split_name(split_names):
+def identify_split_name(split_names):
     prompt = f"""
     Given these split names: {', '.join(split_names)}. 
-    Rename them according to these rules:
-    0. If "train" and "test" are included, keep them as is.
-    1. If "train" is not included, rename only one split most related to training to "train".
-    2. If "test" is not included, rename only one split most related to testing to "test".
-    3. Leave other splits unchanged.
-    Return a Python dictionary with old names as keys and new names as values. label only the dictionary.
+    Identify the splits that correspond to 'train' and 'test'.
+    Return a Python dictionary with 'train' and 'test' as keys and the corresponding split names as values.
+    {{
+        "train": "...",
+        "test": "..."
+    }}
     """
     
     response = run_llm(
@@ -97,40 +97,30 @@ def change_split_name(split_names):
 def rename_dataset_with_ai(dataset):
     split_names, feature_names = get_split_and_feature_names(dataset)
     
-    split_name_map = change_split_name(split_names)
-    feature_name_map = change_feature_name(feature_names)
-    
-    new_dataset = DatasetDict()
-    
-    for old_split_name, new_split_name in split_name_map.items():
-        new_features = {}
-        for old_feature_name, new_feature_name in feature_name_map.items():
-            new_features[new_feature_name] = dataset[old_split_name][old_feature_name]
-        
-        new_split_data = Dataset.from_dict(new_features)
-        new_dataset[new_split_name] = new_split_data
+    split_name_map = identify_split_name(split_names)
+    feature_name_map = identify_feature_name(feature_names)
 
-    # 指定されたsplit_nameとfeature_name以外を除外する処理
-    allowed_splits = ['train', 'test']
-    allowed_features = ['input', 'label']
-    
-    # split_nameのフィルタリング
-    for split_name in list(new_dataset.keys()):
-        if split_name not in allowed_splits:
-            del new_dataset[split_name]
-    
-    # feature_nameのフィルタリング
-    for split_name in new_dataset:
-        new_dataset[split_name] = new_dataset[split_name].select_columns(allowed_features)
-    
-    return new_dataset, split_name_map, feature_name_map
+    new_dataset = DatasetDict()
+
+    train_data = {
+        feature_name_map["input"]: dataset[split_name_map["train"]][feature_name_map["input"]],
+        feature_name_map["output"]: dataset[split_name_map["train"]][feature_name_map["output"]]
+    }
+    test_data = {
+        feature_name_map["input"]: dataset[split_name_map["test"]][feature_name_map["input"]],
+        feature_name_map["output"]: dataset[split_name_map["test"]][feature_name_map["output"]]
+    }
+    new_dataset["train"] = Dataset.from_dict(train_data)
+    new_dataset["test"] = Dataset.from_dict(test_data)
+
+    return new_dataset
 
 
 def prepare_dataset(query):
     results = search_datasets(query)
     selected_dataset = results[0]
     dataset = load_dataset(selected_dataset)
-    dataset, _, _ = rename_dataset_with_ai(dataset)
+    dataset = rename_dataset_with_ai(dataset)
     return dataset
 
 def preprocess_dataset(dataset, model=None, tokenizer=None):
@@ -150,11 +140,11 @@ def preprocess_dataset(dataset, model=None, tokenizer=None):
 
         def preprocess_function(examples):
             examples['input'] = [transform(img.convert('RGB')).to(device) for img in examples['input']]
-            examples['label'] = torch.tensor(examples['label'], device=device)
+            examples['output'] = torch.tensor(examples['output'], device=device)
             return examples
 
         subset = subset.map(preprocess_function, batched=True)
-        subset.set_format(type='torch', columns=['input', 'label'])
+        subset.set_format(type='torch', columns=['input', 'output'])
         return subset
 
     def process_text(subset):
@@ -164,11 +154,11 @@ def preprocess_dataset(dataset, model=None, tokenizer=None):
 
         def preprocess_function(examples):
             examples['input'] = tokenizer(examples['input'], truncation=True, padding=True, return_tensors="pt")
-            examples['label'] = torch.tensor(examples['label'], device=device)
+            examples['output'] = torch.tensor(examples['output'], device=device)
             return examples
         
         subset = subset.map(preprocess_function, batched=True)
-        subset.set_format(type='torch', columns=['input', 'label'])
+        subset.set_format(type='torch', columns=['input', 'output'])
         
         # GPU への転送
         # if torch.cuda.is_available():
@@ -186,6 +176,20 @@ def preprocess_dataset(dataset, model=None, tokenizer=None):
         dataset['test'] = process_text(dataset['test'])
 
     return dataset
+
+def tokenize_dataset(dataset: datasets.Dataset, tokenizer, tokenizer_max_length: int) -> datasets.Dataset:
+    dataset = dataset.shuffle(seed=42)
+    
+    def tokenize_function(examples):
+        inputs = examples["input"]
+        outputs = examples["output"]
+        full_texts = [f"{inp} {out}" for inp, out in zip(inputs, outputs)]
+        encodings = tokenizer(full_texts, truncation=True, padding=True, max_length=tokenizer_max_length)
+        encodings["labels"] = encodings["input_ids"].copy()
+        encodings["labels"] = [[-100 if token == tokenizer.pad_token_id else token for token in labels] for labels in encodings["labels"]]
+        return encodings
+
+    return dataset.map(tokenize_function, batched=True, remove_columns=dataset.column_names)
 
 if __name__ == "__main__":
     query = input("検索キーワードを入力: ")
