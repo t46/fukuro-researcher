@@ -1,8 +1,11 @@
 {
-    "research_goal": "${RESEARCH_OUTPUT_PATH}/research_goal.md",
-    "research_problem": "${RESEARCH_OUTPUT_PATH}/research_problem.md",
-    "experiment_design": "${RESEARCH_OUTPUT_PATH}/experiment_design.md",
-    "experiment_code": "${RESEARCH_OUTPUT_PATH}/experiment.py",
-    "experiment_results": "${RESEARCH_OUTPUT_PATH}/experiment_results.json",
-    "research_paper": "${RESEARCH_OUTPUT_PATH}/latex/template.tex"
+    "research_goal": "/root/fukuro-researcher/outputs/research_goal.json",
+    "research_problem": "/root/fukuro-researcher/outputs/research_problem.md",
+    "proposed_method": "/root/fukuro-researcher/outputs/proposed_method.md",
+    "experiment_design": "/root/fukuro-researcher/outputs/experiment_design.md",
+    "experiment_config": "/root/fukuro-researcher/outputs/experiment_config.json",
+    "experiment_code": "/root/fukuro-researcher/outputs/experiment.py",
+    "experiment_results": "/root/fukuro-researcher/outputs/experiment_results.json",
+    "research_paper": "/root/fukuro-researcher/outputs/latex/template.tex",
+    "research_notes": "/root/fukuro-researcher/outputs/notes.txt"
 }
