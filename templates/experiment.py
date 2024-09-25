@@ -16,9 +16,11 @@ def train(model, train_dataset, batch_size=8, learning_rate=5e-5, num_epochs=3):
         model.train()
         total_loss = 0
         for batch in train_loader:
-            outputs = model(**batch)
-            print(outputs)
-            loss = outputs.loss
+            inputs = batch['input']
+            labels = batch['output']
+            
+            outputs = model(inputs)
+            loss = torch.nn.functional.cross_entropy(outputs.logits, labels)
             total_loss += loss.item()
             
             loss.backward()
@@ -36,9 +38,14 @@ def test(model, test_dataset, batch_size=8):
 
     model.eval()
     total_loss = 0
-    for batch in test_loader:
-        outputs = model(**batch)
-        total_loss += outputs.loss.item()
+    with torch.no_grad():
+        for batch in test_loader:
+            inputs = batch['input']
+            labels = batch['output']
+            
+            outputs = model(inputs)
+            loss = torch.nn.functional.cross_entropy(outputs.logits, labels)
+            total_loss += loss.item()
     
     avg_loss = total_loss / len(test_loader)
     print(f"Test loss: {avg_loss:.4f}")
@@ -47,10 +54,10 @@ def test(model, test_dataset, batch_size=8):
 
 
 def main():
-    query_dataset = input("あれば具体的なデータセット名、なければ所望のデータが得られるようなクエリを入力: ")
-    query_model = input("あれば具体的なモデル名、なければ所望のモデルが得られるようなクエリを入力: ")  # 画像系は timm をクエリに含むように指示する
+    query_dataset =  "mrpc" # input("あれば具体的なデータセット名、なければ所望のデータが得られるようなクエリを入力: ")
+    query_model =  "gpt2" # input("あれば具体的なモデル名、なければ所望のモデルが得られるようなクエリを入力: ")  # 画像系は timm をクエリに含むように指示する
     dataset = prepare_dataset(query_dataset)  # Hugging Face datasets の load_dataset を使用
-    model, tokenizer = prepare_model(query_model)  # Hugging Face transformers の AutoModel と AutoTokenizer を使用
+    model, tokenizer = prepare_model(query_model, is_pretrained=True)  # Hugging Face transformers の AutoModel と AutoTokenizer を使用
     dataset = preprocess_dataset(dataset, model, tokenizer)
 
     # トレーニングの実行

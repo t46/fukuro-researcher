@@ -3,6 +3,7 @@ from modules.verification_execution import execute_verification
 from modules.paper_writing import perform_writeup
 
 import os
+import json
 
 from aider.coders import Coder
 from aider.models import Model
@@ -17,6 +18,19 @@ coder_llm_name = "ollama/gemma2:9b" #deepseek/deepseek-coder, "deepseek-coder-v2
 # このファイルがあるディレクトリの中にある outputs ディレクトリ、なければ作成
 output_directory = os.path.join(os.path.dirname(__file__), "outputs")
 os.makedirs(output_directory, exist_ok=True)
+
+# output_directory を RESEARCH_OUTPUT_PATH に設定
+os.environ["RESEARCH_OUTPUT_PATH"] = output_directory
+
+# research_metadata.json の ${RESEARCH_OUTPUT_PATH} を os.environ["RESEARCH_OUTPUT_PATH"] に変更
+# すでに変更されている場合は何もしない
+with open("modules/research_metadata.json", "r") as f:
+    research_metadata = json.load(f)  
+    for key, value in research_metadata.items():
+        if "${RESEARCH_OUTPUT_PATH}" in value:
+            research_metadata[key] = value.replace("${RESEARCH_OUTPUT_PATH}", os.environ["RESEARCH_OUTPUT_PATH"])
+    with open("modules/research_metadata.json", "w") as f:
+        json.dump(research_metadata, f, indent=4)
 
 latex_directory = os.path.join(output_directory, "latex")
 os.makedirs(latex_directory, exist_ok=True)

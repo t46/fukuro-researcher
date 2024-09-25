@@ -7,7 +7,6 @@ import os
 import re
 import torch
 from torchvision import transforms
-import multiprocessing
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -31,7 +30,6 @@ def get_split_and_feature_names(dataset):
     return split_names, feature_names
 
 def extract_dict(text):
-    # 文字列から辞書部分を抽出する正規表現
     dict_pattern = r'\{[^}]+\}'
     match = re.search(dict_pattern, text)
     if match:
@@ -65,10 +63,11 @@ def change_feature_name(feature_names):
     prompt = f"""
     Given these feature names: {', '.join(feature_names)}. 
     Rename them according to these rules:
-    1. Rename features that could be model inputs to "input".
-    2. Rename features that could be labels or outputs to "output".
+    0. If "input" and "label" are included, keep them as is.
+    1. If "input" is not included, rename only one feature most related to input to "input".
+    2. If "label" is not included, rename only one feature most related to label to "label".
     3. Leave other features unchanged.
-    Return a Python dictionary with old names as keys and new names as values.
+    Return a Python dictionary with old names as keys and new names as values. label only the dictionary.
     """
     
     response = run_llm(
@@ -76,17 +75,17 @@ def change_feature_name(feature_names):
         message=prompt
     )
     
-    # Extract the dictionary from the AI's response
     return process_ai_response(response)
 
 def change_split_name(split_names):
     prompt = f"""
     Given these split names: {', '.join(split_names)}. 
     Rename them according to these rules:
-    1. Rename splits related to training to "train".
-    2. Rename splits related to testing to "test".
+    0. If "train" and "test" are included, keep them as is.
+    1. If "train" is not included, rename only one split most related to training to "train".
+    2. If "test" is not included, rename only one split most related to testing to "test".
     3. Leave other splits unchanged.
-    Return a Python dictionary with old names as keys and new names as values.
+    Return a Python dictionary with old names as keys and new names as values. label only the dictionary.
     """
     
     response = run_llm(
@@ -98,27 +97,34 @@ def change_split_name(split_names):
 def rename_dataset_with_ai(dataset):
     split_names, feature_names = get_split_and_feature_names(dataset)
     
-    # Get the new names for splits and features using AI
     split_name_map = change_split_name(split_names)
     feature_name_map = change_feature_name(feature_names)
     
-    # Create a new DatasetDict
     new_dataset = DatasetDict()
     
-    # Rename splits and features
     for old_split_name, new_split_name in split_name_map.items():
-        # Rename features
         new_features = {}
         for old_feature_name, new_feature_name in feature_name_map.items():
             new_features[new_feature_name] = dataset[old_split_name][old_feature_name]
         
-        # Create a new Dataset with renamed features
         new_split_data = Dataset.from_dict(new_features)
-        
-        # Add the renamed split to the new DatasetDict
         new_dataset[new_split_name] = new_split_data
+
+    # 指定されたsplit_nameとfeature_name以外を除外する処理
+    allowed_splits = ['train', 'test']
+    allowed_features = ['input', 'label']
+    
+    # split_nameのフィルタリング
+    for split_name in list(new_dataset.keys()):
+        if split_name not in allowed_splits:
+            del new_dataset[split_name]
+    
+    # feature_nameのフィルタリング
+    for split_name in new_dataset:
+        new_dataset[split_name] = new_dataset[split_name].select_columns(allowed_features)
     
     return new_dataset, split_name_map, feature_name_map
+
 
 def prepare_dataset(query):
     results = search_datasets(query)
@@ -127,71 +133,59 @@ def prepare_dataset(query):
     dataset, _, _ = rename_dataset_with_ai(dataset)
     return dataset
 
-def get_available_gpu_memory():
-    """Returns a list of tuples containing GPU index and available memory in GB for all available GPUs."""
-    gpu_memory = []
-    if torch.cuda.is_available():
-        for i in range(torch.cuda.device_count()):
-            torch.cuda.set_device(i)
-            torch.cuda.empty_cache()
-            total_memory = torch.cuda.get_device_properties(i).total_memory
-            allocated_memory = torch.cuda.memory_allocated(i)
-            free_memory = (total_memory - allocated_memory) / 1e9  # Convert to GB
-            gpu_memory.append((i, free_memory))
-    return gpu_memory
-
-def get_optimal_num_proc():
-    """Returns the optimal number of processes to use based on available CPU cores."""
-    return max(1, multiprocessing.cpu_count() - 1)  # Leave one core free for system processes
-
 def preprocess_dataset(dataset, model=None, tokenizer=None):
-    available_gpus = get_available_gpu_memory()
-    num_proc = get_optimal_num_proc()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using {device} for processing.")
 
-    if available_gpus:
-        print(f"Found {len(available_gpus)} GPUs. Using all available GPUs for processing.")
-        device = torch.device("cuda")
-    else:
-        print("No GPUs detected. Using CPU for processing.")
-        device = torch.device("cpu")
-
-    print(f"Using {num_proc} CPU cores for parallel processing.")
-
-    # timmモデル用の前処理を追加
-    if tokenizer is None and model is not None:  # timmモデルの場合
-        # モデルから入力サイズと正規化パラメータを取得
+    def process_images(subset):
         input_size = model.default_cfg['input_size'][-2:]  # (H, W)
         mean = model.default_cfg['mean']
         std = model.default_cfg['std']
         
         transform = transforms.Compose([
-            transforms.Resize(input_size),  # モデルに対応する入力サイズ
+            transforms.Resize(input_size),
             transforms.ToTensor(),
-            transforms.Normalize(mean=mean, std=std)  # モデルに対応する正規化
+            transforms.Normalize(mean=mean, std=std)
         ])
 
         def preprocess_function(examples):
             examples['input'] = [transform(img.convert('RGB')).to(device) for img in examples['input']]
-            examples['output'] = torch.tensor(examples['output'], device=device)
+            examples['label'] = torch.tensor(examples['label'], device=device)
             return examples
 
-        dataset = dataset.map(preprocess_function, batched=True, num_proc=num_proc)
-        dataset.set_format(type='torch', columns=['input', 'output'])
-    
-    elif tokenizer is not None:  # トークナイザを使用するモデルの場合
-        def tokenize_function(examples):
-            return tokenizer(examples['input'], truncation=True, padding=True, return_tensors="pt")
+        subset = subset.map(preprocess_function, batched=True)
+        subset.set_format(type='torch', columns=['input', 'label'])
+        return subset
 
-        dataset = dataset.map(tokenize_function, batched=True, num_proc=num_proc)
+    def process_text(subset):
+        # パディングトークンを設定
+        if tokenizer.pad_token is None:
+            tokenizer.pad_token = tokenizer.eos_token
+
+        def preprocess_function(examples):
+            examples['input'] = tokenizer(examples['input'], truncation=True, padding=True, return_tensors="pt")
+            examples['label'] = torch.tensor(examples['label'], device=device)
+            return examples
         
-        # GPUが利用可能な場合、データをGPUに移動
-        if available_gpus:
-            dataset = dataset.map(lambda x: {k: v.to(device) for k, v in x.items()}, batched=True)
+        subset = subset.map(preprocess_function, batched=True)
+        subset.set_format(type='torch', columns=['input', 'label'])
+        
+        # GPU への転送
+        # if torch.cuda.is_available():
+        #     subset = subset.map(lambda x: {k: v.to(device) for k, v in x.items()}, batched=True)
 
-    dataset = dataset.cache()
+        return subset
+
+    # DatasetDict の train と test をそれぞれ処理
+    if tokenizer is None and model is not None:  # For timm models
+        dataset['train'] = process_images(dataset['train'])
+        dataset['test'] = process_images(dataset['test'])
     
-    return dataset
+    elif tokenizer is not None:  # For tokenizer-based models
+        dataset['train'] = process_text(dataset['train'])
+        dataset['test'] = process_text(dataset['test'])
 
+    return dataset
 
 if __name__ == "__main__":
     query = input("検索キーワードを入力: ")
