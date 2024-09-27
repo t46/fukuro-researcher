@@ -10,6 +10,15 @@ resolution-markers = [
 ]
 
 [[package]]
+name = "absl-py"
+version = "2.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/7a/8f/fc001b92ecc467cc32ab38398bd0bfb45df46e7523bf33c2ad22a505f06e/absl-py-2.1.0.tar.gz", hash = "sha256:7820790efbb316739cde8b4e19357243fc3608a152024288513dd968d7d959ff", size = 118055 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a2/ad/e0d3c824784ff121c03cc031f944bc7e139a8f1870ffd2845cc2dd76f6c4/absl_py-2.1.0-py3-none-any.whl", hash = "sha256:526a04eadab8b4ee719ce68f204172ead1027549089702d99b9059f129ff1308", size = 133706 },
+]
+
+[[package]]
 name = "accelerate"
 version = "0.34.2"
 source = { registry = "https://pypi.org/simple" }
@@ -843,6 +852,23 @@ wheels = [
 ]
 
 [[package]]
+name = "etils"
+version = "1.9.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/19/e0/d8e99c24e7c55a9cb6a405fa502c059f77ed789f916bffbcaa8e1cc65f2d/etils-1.9.4.tar.gz", hash = "sha256:fad950414f0a1ca58c70c70915b0014f9953dd9bcf8aa951a0f75ff9becbeb24", size = 103161 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2e/35/7f8fcc9c23a504cf09e2795164eeb39a39ade1b2c7c8724ee207b2019ae6/etils-1.9.4-py3-none-any.whl", hash = "sha256:4387e7a4911a3b5cc4b92b99a9211386d176b43bae1dac8e2fe345fc2cb95e4b", size = 164341 },
+]
+
+[package.optional-dependencies]
+epath = [
+    { name = "fsspec" },
+    { name = "importlib-resources" },
+    { name = "typing-extensions" },
+    { name = "zipp" },
+]
+
+[[package]]
 name = "evaluate"
 version = "0.4.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1090,6 +1116,7 @@ dependencies = [
     { name = "huggingface-hub" },
     { name = "jupyter" },
     { name = "matplotlib" },
+    { name = "mlcroissant" },
     { name = "numpy" },
     { name = "ollama" },
     { name = "openai" },
@@ -1114,6 +1141,7 @@ requires-dist = [
     { name = "huggingface-hub", specifier = ">=0.24.6" },
     { name = "jupyter", specifier = ">=1.1.1" },
     { name = "matplotlib", specifier = ">=3.9.2" },
+    { name = "mlcroissant", specifier = ">=1.0.8" },
     { name = "numpy", specifier = ">=1.26.4" },
     { name = "ollama", specifier = ">=0.3.2" },
     { name = "openai", specifier = ">=1.42.0" },
@@ -1542,6 +1570,18 @@ wheels = [
 ]
 
 [[package]]
+name = "isodate"
+version = "0.6.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "six" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/db/7a/c0a56c7d56c7fa723988f122fa1f1ccf8c5c4ccc48efad0d214b49e5b1af/isodate-0.6.1.tar.gz", hash = "sha256:48c5881de7e8b0a0d648cb024c8062dc84e7b840ed81e864c7614fd3c127bde9", size = 28443 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b6/85/7882d311924cbcfc70b1890780763e36ff0b140c7e51c110fc59a532f087/isodate-0.6.1-py2.py3-none-any.whl", hash = "sha256:0751eece944162659049d35f4f549ed815792b38793f07cf73381c1c87cbed96", size = 41722 },
+]
+
+[[package]]
 name = "isoduration"
 version = "20.11.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1626,6 +1666,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/91/59/51b032d53212a51f1
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8a/3c/4f8791ee53ab9eeb0b022205aa79387119a74cc9429582ce04098e6fc540/json5-0.9.25-py3-none-any.whl", hash = "sha256:34ed7d834b1341a86987ed52f3f76cd8ee184394906b6e22a1e0deb9ab294e8f", size = 30109 },
 ]
+
+[[package]]
+name = "jsonpath-rw"
+version = "1.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "decorator" },
+    { name = "ply" },
+    { name = "six" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/71/7c/45001b1f19af8c4478489fbae4fc657b21c4c669d7a5a036a86882581d85/jsonpath-rw-1.4.0.tar.gz", hash = "sha256:05c471281c45ae113f6103d1268ec7a4831a2e96aa80de45edc89b11fac4fbec", size = 13814 }
 
 [[package]]
 name = "jsonpointer"
@@ -2264,6 +2315,27 @@ wheels = [
 ]
 
 [[package]]
+name = "mlcroissant"
+version = "1.0.8"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "absl-py" },
+    { name = "etils", extra = ["epath"] },
+    { name = "jsonpath-rw" },
+    { name = "networkx" },
+    { name = "pandas" },
+    { name = "pandas-stubs" },
+    { name = "python-dateutil" },
+    { name = "rdflib" },
+    { name = "requests" },
+    { name = "tqdm" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/64/96/0f323df4b4c06e95ed3bd968454d182b0f32783fba0600830ed0e50e29e2/mlcroissant-1.0.8.tar.gz", hash = "sha256:152ddfb18504047c679cde86125abc01c12d7610c832f765b6462f40856bf5f6", size = 93158 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/56/28/44c693e611f34ff3dabc8927cb317f3c3b104504ecd6ca5666394a0ec487/mlcroissant-1.0.8-py2.py3-none-any.whl", hash = "sha256:bdfb2ab94087b652284a81844c5a1c0cd5f0368ec6f6a8288f66dafc9e21a367", size = 132919 },
+]
+
+[[package]]
 name = "mpmath"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2852,6 +2924,19 @@ wheels = [
 ]
 
 [[package]]
+name = "pandas-stubs"
+version = "2.2.2.240909"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "types-pytz" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/39/d9/0682716a9ba539b78748f026c523ae5f280fc478381f7f1c6c037d0f0fc3/pandas_stubs-2.2.2.240909.tar.gz", hash = "sha256:3c0951a2c3e45e3475aed9d80b7147ae82f176b9e42e9fb321cfdebf3d411b3d", size = 103599 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/06/2d/68d58d819798b466e16c01ca934deada2f9165fb3d062f83abbef2f8067e/pandas_stubs-2.2.2.240909-py3-none-any.whl", hash = "sha256:e230f5fa4065f9417804f4d65cd98f86c002efcc07933e8abcd48c3fad9c30a2", size = 157811 },
+]
+
+[[package]]
 name = "pandocfilters"
 version = "1.5.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2947,6 +3032,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/96/2d/02d4312c973c6050a18b314a5ad0b3210edb65a906f868e31c111dede4a6/pluggy-1.5.0.tar.gz", hash = "sha256:2cffa88e94fdc978c4c574f15f9e59b7f4201d439195c3715ca9e2486f1d0cf1", size = 67955 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/88/5f/e351af9a41f866ac3f1fac4ca0613908d9a41741cfcf2228f4ad853b697d/pluggy-1.5.0-py3-none-any.whl", hash = "sha256:44e1ad92c8ca002de6377e165f3e0f1be63266ab4d554740532335b9d75ea669", size = 20556 },
+]
+
+[[package]]
+name = "ply"
+version = "3.11"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e5/69/882ee5c9d017149285cab114ebeab373308ef0f874fcdac9beb90e0ac4da/ply-3.11.tar.gz", hash = "sha256:00c7c1aaa88358b9c765b6d3000c6eec0ba42abca5351b095321aef446081da3", size = 159130 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a3/58/35da89ee790598a0700ea49b2a66594140f44dec458c07e8e3d4979137fc/ply-3.11-py2.py3-none-any.whl", hash = "sha256:096f9b8350b65ebd2fd1346b12452efe5b9607f7482813ffca50c22722a807ce", size = 49567 },
 ]
 
 [[package]]
@@ -3575,6 +3669,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/e4/d6/68e1f51c3edb3c8ef2fc4868a4444870912cd0d1d282b1f5fcfab2b482de/ray-2.35.0-cp312-cp312-manylinux2014_aarch64.whl", hash = "sha256:e2ccfd144180f03d38b02a81afdac2b437f27e46736bf2653a1f0e8d67ea56cd", size = 64244918 },
     { url = "https://files.pythonhosted.org/packages/35/e7/d9b4706308d584027df8e64b0517ca0cecf268b9f2f2051fb487fc555e55/ray-2.35.0-cp312-cp312-manylinux2014_x86_64.whl", hash = "sha256:2ca1a0de41d4462fd764598a5981cf55fc955599f38f9a1ae10868e94c6dd80d", size = 65151010 },
     { url = "https://files.pythonhosted.org/packages/50/0f/ab971561f1947e5b2fc38d890d8b81f09f383cdcc3b8e8e6292188fc3648/ray-2.35.0-cp312-cp312-win_amd64.whl", hash = "sha256:c5600f745bb0e4df840a5cd51e82b1acf517f73505df9869fe3e369966956129", size = 24682282 },
+]
+
+[[package]]
+name = "rdflib"
+version = "7.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "isodate" },
+    { name = "pyparsing" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0d/a3/63740490a392921a611cfc05b5b17bffd4259b3c9589c7904a4033b3d291/rdflib-7.0.0.tar.gz", hash = "sha256:9995eb8569428059b8c1affd26b25eac510d64f5043d9ce8c84e0d0036e995ae", size = 4765796 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d4/b0/7b7d8b5b0d01f1a0b12cc2e5038a868ef3a15825731b8a0d776cf47566c0/rdflib-7.0.0-py3-none-any.whl", hash = "sha256:0438920912a642c866a513de6fe8a0001bd86ef975057d6962c79ce4771687cd", size = 531912 },
 ]
 
 [[package]]
@@ -4566,6 +4673,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/3e/d9/9c9ec2d870af7aa9b722ce4fd5890bb55b1d18898df7f1d069cab194bb2a/types-python-dateutil-2.9.0.20240906.tar.gz", hash = "sha256:9706c3b68284c25adffc47319ecc7947e5bb86b3773f843c73906fd598bc176e", size = 9169 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/aa/4c/5c684b333135a6fb085bb5a5bdfd962937f80bec06745a88fd551e29f4d9/types_python_dateutil-2.9.0.20240906-py3-none-any.whl", hash = "sha256:27c8cc2d058ccb14946eebcaaa503088f4f6dbc4fb6093d3d456a49aef2753f6", size = 9693 },
+]
+
+[[package]]
+name = "types-pytz"
+version = "2024.2.0.20240913"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/da/cf/a4811b07d7309d9eecf0f383ca5747ce90f8a0d860acb2050bc57f3c9379/types-pytz-2024.2.0.20240913.tar.gz", hash = "sha256:4433b5df4a6fc587bbed41716d86a5ba5d832b4378e506f40d34bc9c81df2c24", size = 5462 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b6/a6/8846372f55c6bb470ff7207e4dc601017e264e5fe7d79a441ece3545b36c/types_pytz-2024.2.0.20240913-py3-none-any.whl", hash = "sha256:a1eebf57ebc6e127a99d2fa2ba0a88d2b173784ef9b3defcc2004ab6855a44df", size = 5251 },
 ]
 
 [[package]]
