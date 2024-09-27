@@ -79,13 +79,14 @@ def identify_feature_name(feature_names):
 
 def identify_split_name(split_names):
     prompt = f"""
-    Given these split names: {', '.join(split_names)}. 
+    Given these split names: {', '.join(split_names)} 
     Identify the **single** split that corresponds to 'train' and 'test', respectively. Don't select multiple splits.
     Return a Python dictionary with 'train' and 'test' as keys and the corresponding split names as values.
     {{
         "train": str,
         "test": str
     }}
+    If there is only one split or no split corresponding to 'test', please input the same value for 'test' as for 'train'.
     """
     
     response = run_llm(
@@ -95,23 +96,57 @@ def identify_split_name(split_names):
     return process_ai_response(response)
 
 def rename_dataset_with_ai(dataset):
-    split_names, feature_names = get_split_and_feature_names(dataset)
-    
+
+    # NOTE: tokenize_dataset を自動生成することになってので、feature の名前を変更する必要がなくなった
+    # split_names, feature_names = get_split_and_feature_names(dataset)
+
+    split_names = list(dataset.keys())
     split_name_map = identify_split_name(split_names)
-    feature_name_map = identify_feature_name(feature_names)
+
+    # split_name_map["train"] と split_name_map["test"] が同じ場合は、シャッフルした後で
+    # dataset["train"] がもとのdataset["train"]の80%、dataset["test"] がもとのdataset["test"]の20%になるように分割する
+
+    # シャッフル
+    dataset = dataset.shuffle(seed=42)
+
+    # TODO: train と test の分割とかは llm 使わずにルールーベースでやった方がロバストかもしれない
 
     new_dataset = DatasetDict()
+    if split_name_map["train"] == split_name_map["test"]:
+        train_size = int(len(dataset[split_name_map["train"]]) * 0.8)
+        test_size = len(dataset[split_name_map["train"]]) - train_size
+        train_dataset = dataset[split_name_map["train"]].select(range(train_size))
+        test_dataset = dataset[split_name_map["train"]].select(range(train_size, train_size + test_size))
+        new_dataset["train"] = train_dataset
+        new_dataset["test"] = test_dataset
+    else:
+        new_dataset["train"] = dataset[split_name_map["train"]]
+        new_dataset["test"] = dataset[split_name_map["test"]]
 
-    for split in ["train", "test"]:
-        original_split = split_name_map[split]
-        new_data = {
-            "input": dataset[original_split][feature_name_map["input"]],
-            "output": dataset[original_split][feature_name_map["output"]]
-        }
-        new_dataset[split] = Dataset.from_dict(new_data)
+
+    # feature_name_map = identify_feature_name(feature_names)
+
+    # new_dataset = DatasetDict()
+
+    # もし split_name_map["train"] と split_name_map["test"] が同じ場合は
+    # dataset["train"] がもとのdataset["train"]の80%、dataset["test"] がもとのdataset["test"]の20%になるように分割する
+    # if split_name_map["train"] == split_name_map["test"]:
+    #     train_size = int(len(dataset[split_name_map["train"]]) * 0.8)
+    #     test_size = len(dataset[split_name_map["train"]]) - train_size
+    #     train_dataset = dataset[split_name_map["train"]].select(range(train_size))
+    #     test_dataset = dataset[split_name_map["train"]].select(range(train_size, train_size + test_size))
+    #     new_dataset[split_name_map["train"]] = train_dataset
+    #     new_dataset[split_name_map["test"]] = test_dataset
+
+    # for split in ["train", "test"]:
+    #     original_split = split_name_map[split]
+    #     new_data = {
+    #         "input": dataset[original_split][feature_name_map["input"]],
+    #         "output": dataset[original_split][feature_name_map["output"]]
+    #     }
+    #     new_dataset[split] = Dataset.from_dict(new_data)
 
     return new_dataset
-
 
 def prepare_dataset(query):
     results = search_datasets(query)
@@ -181,7 +216,7 @@ def tokenize_dataset(dataset: datasets.Dataset, tokenizer, tokenizer_max_length:
         inputs = examples["input"]
         outputs = examples["output"]
         full_texts = [f"{inp} {out}" for inp, out in zip(inputs, outputs)]
-        encodings = tokenizer(full_texts, truncation=True, padding=True, max_length=tokenizer_max_length)
+        encodings = tokenizer(full_texts, truncation=True, padding="max_length", max_length=tokenizer_max_length)
         encodings["labels"] = encodings["input_ids"].copy()
         encodings["labels"] = [[-100 if token == tokenizer.pad_token_id else token for token in labels] for labels in encodings["labels"]]
         return encodings
