@@ -4,11 +4,8 @@ import torch
 from tqdm import tqdm
 from transformers import get_linear_schedule_with_warmup
 from torch.utils.data import DataLoader
-from dataset_preparation import tokenize_dataset
 import datasets
 import torch.optim as optim
-
-# Add tokenize_dataset function here.
 
 def collate_fn(batch):  # TODO: 別の場所に移す
     input_ids = torch.tensor([item['input_ids'] for item in batch])
@@ -140,7 +137,7 @@ if __name__ == "__main__":
     from model_preparation import prepare_model
     from tokenize_dataset_func_generator import generate_tokenize_dataset_func
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    prompt_dataset = "mrpc"
+    prompt_dataset = "wikitext-tiny"
     prompt_model = "gpt2"
     dataset = prepare_dataset(prompt_dataset)
     model, tokenizer = prepare_model(prompt_model)
