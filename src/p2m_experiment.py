@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader
 import datasets
 import torch.optim as optim
 
+
 def collate_fn(batch):  # TODO: 別の場所に移す
     input_ids = torch.tensor([item['input_ids'] for item in batch])
     attention_mask = torch.tensor([item['attention_mask'] for item in batch])
@@ -22,14 +23,24 @@ class Algorithm:
         self.tokenizer = tokenizer
         self.device = device
         self.model = model.to(device)
+        self.log = {
+            "train_losses": [],
+            "eval_losses": [],
+            "train_time": None,
+            "inference_time": None,
+            "generated_outputs": [],
+            "model_parameters": None,
+        }
 
     def __call__(self, dataset: datasets.Dataset, is_train_included=False):
         if is_train_included:
             self.model, self.tokenizer = self.train_model(dataset["train"])
-        outputs = self.run_inference(dataset["test"])
-        return outputs
+        log = self.run_inference(dataset["test"])
+        return log
     
     def train_model(self, training_datasets: list[datasets.Dataset] | None = None):
+        import time
+        start_time = time.time()
 
         # Concatenate and tokenize datasets
         # train_dataset = concatenate_datasets(training_datasets)
@@ -71,6 +82,10 @@ class Algorithm:
 
             avg_train_loss = total_loss / len(train_loader)
             print(f"Epoch {epoch + 1}/{epochs}, Average train loss: {avg_train_loss:.4f}")
+            self.log["train_losses"].append(avg_train_loss)
+
+        self.log["train_time"] = time.time() - start_time
+        self.log["model_parameters"] = model.state_dict()
 
         # モデルの保存
         model.save_pretrained("artifacts")
@@ -80,6 +95,9 @@ class Algorithm:
 
     # モデルによる推論&テストデータによる評価（loss ではなく）
     def run_inference(self, test_dataset: datasets.Dataset):
+        import time
+        start_time = time.time()
+
         test_dataset = tokenize_dataset(test_dataset, self.tokenizer, self.tokenizer.model_max_length)
         test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False, collate_fn=collate_fn)
 
@@ -103,7 +121,9 @@ class Algorithm:
                 # outputs = self.model(input_ids, attention_mask=attention_mask)
                 # all_outputs.extend(outputs.logits.argmax(dim=-1).cpu().tolist())
 
-        return all_outputs
+        self.log["inference_time"] = time.time() - start_time
+        self.log["generated_outputs"] = all_outputs
+        return self.log
     
 class NewAlgorithm(Algorithm):
     def __init__(self, model, tokenizer, device):
@@ -115,7 +135,7 @@ class NewAlgorithm(Algorithm):
     def run_inference(self, test_dataset: datasets.Dataset):
         ...
 
-def compare_and_evaluate_algorithms(outputs, new_outputs, test_dataset):
+def compare_and_evaluate_algorithms(log, new_log, test_dataset):
     import csv
     # それぞれをあるメトリクスで評価
     ...
@@ -145,11 +165,11 @@ if __name__ == "__main__":
     tokenize_dataset = generate_tokenize_dataset_func(dataset_sample=dataset["train"][0])
 
     algorithm = Algorithm(model, tokenizer, device)
-    outputs = algorithm(dataset, is_train_included=False)
+    log = algorithm(dataset, is_train_included=False)
 
     new_algorithm = NewAlgorithm(model, tokenizer, device)
-    new_outputs = new_algorithm(dataset, is_train_included=False)
+    new_log = new_algorithm(dataset, is_train_included=False)
 
-    compare_and_evaluate_algorithms(outputs, new_outputs, dataset["test"])
+    compare_and_evaluate_algorithms(log, new_log, dataset["test"])
 
     print("Finished!!")
