@@ -22,6 +22,7 @@ def search_datasets(query, max_results=5):
         results.append(dataset.id)
         if len(results) == max_results:
             break
+    print(results)
     return results
 
 def get_split_and_feature_names(dataset):

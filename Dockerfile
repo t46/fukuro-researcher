@@ -1,23 +1,54 @@
 # Python 3.11の公式軽量イメージを使用
 FROM python:3.11-slim
 
-# 必要なシステムツールのインストール
-RUN apt-get update && apt-get install -y \
+# 必要なシステムツールとビルドツールのインストール
+RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     curl \
+    gcc \
+    build-essential \
+    python3-dev \
+    libffi-dev \
+    libssl-dev \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # 作業ディレクトリの設定
-WORKDIR /app
+WORKDIR /root
 
-# pyproject.toml と README.md をコンテナ内にコピー
-COPY pyproject.toml README.md /app/
+# pyproject.tomlとREADME.mdをコンテナにコピー
+COPY . /root/
 
-# pipのアップグレード
-RUN pip install --no-cache-dir --upgrade pip
+# ollamaのインストール
+RUN curl -fsSL https://ollama.com/install.sh | sh
+RUN nohup ollama serve > ollama.log 2>&1 & \
+    sleep 10 && \
+    ollama pull gemma2
 
-# pyproject.tomlの依存関係をインストール
-RUN pip install --no-cache-dir $(grep -oP '(?<=")[^"]+(?=")' pyproject.toml | grep -v '^[0-9]')
+# pipのアップグレードとPythonパッケージのインストール
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+        aider-chat \
+        anthropic \
+        backoff \
+        datasets \
+        huggingface-hub \
+        jupyter \
+        matplotlib \
+        mlcroissant \
+        numpy \
+        ollama \
+        openai \
+        prompt2model \
+        pymupdf4llm \
+        pypdf \
+        tiktoken \
+        timm \
+        torch \
+        tqdm \
+        transformers \
+        vllm \
+        wandb
 
 # コンテナ起動時のデフォルトコマンドをbashに設定
 CMD ["bash"]

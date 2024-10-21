@@ -18,14 +18,34 @@ def generate_prompts(research_context, proposition_idea):
     Research Context: {research_context}
     Proposition Idea: {proposition_idea}
 
-    Your final goal is to implement a Proposition Idea and design experiments to validate its feasibility based on the Research Context. To achieve this, generate a prompt for obtaining datasets from HuggingFace using an LLM. This prompt should explicitly state the purpose and objectives of the research, what the Proposition Idea is, and which datasets should be retrieved to validate it.
+    Your final goal is to implement a Proposition Idea and design experiments to validate its feasibility based on the Research Context. To achieve this, generate search query for obtaining datasets from HuggingFace using an LLM. This prompt should explicitly state the purpose and objectives of the research, what the Proposition Idea is, and which datasets should be retrieved to validate it.
+
+    query will be used as follows:
+    from huggingface_hub import HfApi
+    api = HfApi()
+    results = list(api.list_datasets(search=query, sort="downloads", direction=-1, limit=max_results))
+
+    Note that `search` is a string that will be contained in the returned datasets.
+
+    Note that this is only single phrase like "image classification".
+    query:
     """
 
     model_prompt_template = """
     Research Context: {research_context}
     Proposition Idea: {proposition_idea}
 
-    Your final goal is to implement a Proposition Idea and design experiments to validate its feasibility based on the Research Context. To achieve this, generate a prompt for obtaining baseline models from HuggingFace using an LLM. This prompt should explicitly state the purpose and objectives of the research, what the Proposition Idea is, and which models should be retrieved to validate it.
+    Your final goal is to implement a Proposition Idea and design experiments to validate its feasibility based on the Research Context. To achieve this, generate search queryfor obtaining baseline models from HuggingFace using an LLM. This prompt should explicitly state the purpose and objectives of the research, what the Proposition Idea is, and which models should be retrieved to validate it.
+
+    query will be used as follows:
+    from huggingface_hub import HfApi
+    api = HfApi()
+    results = list(api.list_models(search=query, sort="downloads", direction=-1))
+
+    Note that `search` is a string that will be contained in the returned models.
+
+    Note that this is only single phrase like "resnet".
+    query:
     """
 
     dataset_prompt = dataset_prompt_template.format(research_context=research_context, proposition_idea=proposition_idea)
@@ -51,9 +71,11 @@ def run_experiment(coder, prompt, workspace_directory, timeout=7200):
 
 def main():
     # Configuration
-    source_directory = "/root/fukuro-researcher/src"
-    workspace_directory_base = "/root/fukuro-researcher/workspace"
+    source_directory = "/root/src"  # "/root/fukuro-researcher/src"
+    workspace_directory_base = "/root/workspace"  # "/root/fukuro-researcher/workspace"
     workspace_directory = os.path.join(workspace_directory_base, source_directory.split("/")[-1])
+    if not os.path.exists(workspace_directory):
+        os.makedirs(workspace_directory)
     coder_llm_name = "ollama/gemma2:9b"
     max_edit_trials = 10
 
@@ -74,7 +96,8 @@ def main():
     # Execute steps
     copy_source_to_workspace(source_directory, workspace_directory)
     dataset_prompt, model_prompt = generate_prompts(research_context, proposition_idea)
-    save_prompts({"dataset": dataset_prompt, "model": model_prompt}, "prompts.json")
+    prompts_file = os.path.join(workspace_directory, "prompts.json")
+    save_prompts({"dataset": dataset_prompt, "model": model_prompt}, prompts_file)
 
     coder = initialize_coder(workspace_directory, coder_llm_name)
 

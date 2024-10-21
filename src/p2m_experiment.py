@@ -163,12 +163,20 @@ if __name__ == "__main__":
     from tokenize_dataset_func_generator import generate_tokenize_dataset_func
     import json
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    from utils import run_llm
+
     with open("prompts.json", "r") as f:
         prompts = json.load(f)
         prompt_dataset = prompts["dataset"]
         prompt_model = prompts["model"]
-    dataset = prepare_dataset(prompt_dataset)
-    model, tokenizer = prepare_model(prompt_model, is_pretrained=True)
+
+    dataset_search_query = run_llm(model_name="gemma2:9b", message=prompt_dataset)
+    print(dataset_search_query)
+    dataset = prepare_dataset(dataset_search_query)
+
+    model_search_query = run_llm(model_name="gemma2:9b", message=prompt_model)
+    print(model_search_query)
+    model, tokenizer = prepare_model(model_search_query, is_pretrained=True)
 
     tokenize_dataset = generate_tokenize_dataset_func(dataset_sample=dataset["train"][0])
 
