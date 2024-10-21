@@ -3,12 +3,13 @@ import os
 import sys
 import datasets
 
+
 # 現在のファイルのディレクトリを取得
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # 現在のディレクトリをパスに追加
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from modules.utils import run_llm
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from utils import run_llm
 
 # def tokenize_dataset(... で始まるtokenize_datasetを抜き出す
 import re

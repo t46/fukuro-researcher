@@ -1,4 +1,6 @@
-########################## Causal LM に特化した学習コード (from prompt2model.model_trainer.generate import GenerationModelTrainer) ##########################
+"""
+Given the dataset, model, and tokenizer, we execute both the Algorithm and the modified NewAlgorithm, and compare and evaluate the results using compare_and_evaluate_algorithms.
+"""
 
 import torch
 from tqdm import tqdm
@@ -35,7 +37,7 @@ class Algorithm:
     def __call__(self, dataset: datasets.Dataset, is_train_included=False):
         if is_train_included:
             self.model, self.tokenizer = self.train_model(dataset["train"])
-        log = self.run_inference(dataset["test"])
+        log = self.run_model(dataset["test"])
         return log
     
     def train_model(self, training_datasets: list[datasets.Dataset] | None = None):
@@ -94,7 +96,7 @@ class Algorithm:
         return model, tokenizer
 
     # モデルによる推論&テストデータによる評価（loss ではなく）
-    def run_inference(self, test_dataset: datasets.Dataset):
+    def run_model(self, test_dataset: datasets.Dataset):
         import time
         start_time = time.time()
 
@@ -132,7 +134,7 @@ class NewAlgorithm(Algorithm):
     def train_model(self, training_datasets: list[datasets.Dataset] | None = None):
         ...
     
-    def run_inference(self, test_dataset: datasets.Dataset):
+    def run_model(self, test_dataset: datasets.Dataset):
         ...
 
 def compare_and_evaluate_algorithms(log, new_log, test_dataset):
@@ -153,14 +155,20 @@ def compare_and_evaluate_algorithms(log, new_log, test_dataset):
             writer.writerow([algorithm, ...])
 
 if __name__ == "__main__":
+    import sys
+    import os
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     from dataset_preparation import prepare_dataset
     from model_preparation import prepare_model
     from tokenize_dataset_func_generator import generate_tokenize_dataset_func
+    import json
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    prompt_dataset = "wikitext-tiny"
-    prompt_model = "gpt2"
+    with open("prompts.json", "r") as f:
+        prompts = json.load(f)
+        prompt_dataset = prompts["dataset"]
+        prompt_model = prompts["model"]
     dataset = prepare_dataset(prompt_dataset)
-    model, tokenizer = prepare_model(prompt_model)
+    model, tokenizer = prepare_model(prompt_model, is_pretrained=True)
 
     tokenize_dataset = generate_tokenize_dataset_func(dataset_sample=dataset["train"][0])
 

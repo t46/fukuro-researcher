@@ -1,37 +1,23 @@
-# Use Python 3.11 as the base image
-FROM python:3.11-slim-bookworm
+# Python 3.11の公式軽量イメージを使用
+FROM python:3.11-slim
 
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
-
-# Avoid prompts from apt
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install system dependencies including texlive-full
-RUN apt update && apt install -y --no-install-recommends \
-    wget \
+# 必要なシステムツールのインストール
+RUN apt-get update && apt-get install -y \
     git \
-    build-essential \
-    libssl-dev \
-    zlib1g-dev \
-    libbz2-dev \
-    libreadline-dev \
-    libsqlite3-dev \
-    libncursesw5-dev \
-    xz-utils \
-    tk-dev \
-    libxml2-dev \
-    libxmlsec1-dev \
-    libffi-dev \
-    liblzma-dev \
-    texlive-full \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+# 作業ディレクトリの設定
 WORKDIR /app
 
-COPY . /app/
-RUN uv sync
+# pyproject.toml と README.md をコンテナ内にコピー
+COPY pyproject.toml README.md /app/
 
-# Set the default command to an empty array
-CMD ["/bin/bash"]
+# pipのアップグレード
+RUN pip install --no-cache-dir --upgrade pip
+
+# pyproject.tomlの依存関係をインストール
+RUN pip install --no-cache-dir $(grep -oP '(?<=")[^"]+(?=")' pyproject.toml | grep -v '^[0-9]')
+
+# コンテナ起動時のデフォルトコマンドをbashに設定
+CMD ["bash"]

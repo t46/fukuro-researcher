@@ -1,6 +1,5 @@
 from huggingface_hub import HfApi
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig
-import timm
 
 def search_models(query, max_results=5):
     api = HfApi()

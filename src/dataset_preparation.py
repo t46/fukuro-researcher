@@ -8,11 +8,11 @@ import re
 import torch
 from torchvision import transforms
 import datasets
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from datasets import load_dataset
 from huggingface_hub import HfApi
-from modules.utils import run_llm
+from utils import run_llm
 from datasets import DatasetDict, Dataset
 
 def search_datasets(query, max_results=5):
