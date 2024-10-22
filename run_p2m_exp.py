@@ -25,10 +25,12 @@ def generate_prompts(research_context, proposition_idea):
     api = HfApi()
     results = list(api.list_datasets(search=query, sort="downloads", direction=-1, limit=max_results))
 
-    Note that `search` is a string that will be contained in the returned datasets.
+    Note that query input to `search` is a string that will be contained in the returned datasets.
+    For example, query can be a dataset name like "wikitext", "cifar10", "imagenet", "sarcasm", "emotion", etc.
 
-    Note that this is only single phrase like "image classification".
-    query:
+    <query>
+    "..."
+    </query>
     """
 
     model_prompt_template = """
@@ -42,10 +44,13 @@ def generate_prompts(research_context, proposition_idea):
     api = HfApi()
     results = list(api.list_models(search=query, sort="downloads", direction=-1))
 
-    Note that `search` is a string that will be contained in the returned models.
+    Note that query input to `search` is a string that will be contained in the returned models.
+    For example, query can be a model name like "resnet", "lstm", "bert", "gpt2", "t5", etc.
+    Generate only one query.
 
-    Note that this is only single phrase like "resnet".
-    query:
+    <query>
+    "..."
+    </query>
     """
 
     dataset_prompt = dataset_prompt_template.format(research_context=research_context, proposition_idea=proposition_idea)

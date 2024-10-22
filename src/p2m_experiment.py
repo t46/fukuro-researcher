@@ -65,7 +65,7 @@ class Algorithm:
         for epoch in range(epochs):
             model.train()
             total_loss = 0
-            
+
             for batch in tqdm(train_loader, desc=f"Epoch {epoch + 1}/{epochs}"):
                 input_ids = batch['input_ids'].to(device)
                 attention_mask = batch['attention_mask'].to(device)
@@ -163,18 +163,20 @@ if __name__ == "__main__":
     from tokenize_dataset_func_generator import generate_tokenize_dataset_func
     import json
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    from utils import run_llm
+    from utils import run_llm, extract_content_between_tags
 
     with open("prompts.json", "r") as f:
         prompts = json.load(f)
         prompt_dataset = prompts["dataset"]
         prompt_model = prompts["model"]
 
-    dataset_search_query = run_llm(model_name="gemma2:9b", message=prompt_dataset)
+    dataset_search_query_with_tags = run_llm(model_name="gemma2:9b", message=prompt_dataset)
+    dataset_search_query = extract_content_between_tags(dataset_search_query_with_tags, "<query>", "</query>")
     print(dataset_search_query)
     dataset = prepare_dataset(dataset_search_query)
 
-    model_search_query = run_llm(model_name="gemma2:9b", message=prompt_model)
+    model_search_query_with_tags = run_llm(model_name="gemma2:9b", message=prompt_model)
+    model_search_query = extract_content_between_tags(model_search_query_with_tags, "<query>", "</query>")
     print(model_search_query)
     model, tokenizer = prepare_model(model_search_query, is_pretrained=True)
 
