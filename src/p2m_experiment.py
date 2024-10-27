@@ -131,12 +131,6 @@ class NewAlgorithm(Algorithm):
     def __init__(self, model, tokenizer, device):
         super().__init__(model, tokenizer, device)
 
-    def train_model(self, training_datasets: list[datasets.Dataset] | None = None):
-        ...
-    
-    def run_model(self, test_dataset: datasets.Dataset):
-        ...
-
 def compare_and_evaluate_algorithms(log, new_log, test_dataset):
     import csv
     # それぞれをあるメトリクスで評価
@@ -170,12 +164,12 @@ if __name__ == "__main__":
         prompt_dataset = prompts["dataset"]
         prompt_model = prompts["model"]
 
-    dataset_search_query_with_tags = run_llm(model_name="gemma2:9b", message=prompt_dataset)
+    dataset_search_query_with_tags = run_llm(model_name="gemma2:9b", message=prompt_dataset)  # "claude-3-5-sonnet-20240620"
     dataset_search_query = extract_content_between_tags(dataset_search_query_with_tags, "<query>", "</query>")
     print(dataset_search_query)
     dataset = prepare_dataset(dataset_search_query)
 
-    model_search_query_with_tags = run_llm(model_name="gemma2:9b", message=prompt_model)
+    model_search_query_with_tags = run_llm(model_name="gemma2:9b", message=prompt_model)  # "claude-3-5-sonnet-20240620"
     model_search_query = extract_content_between_tags(model_search_query_with_tags, "<query>", "</query>")
     print(model_search_query)
     model, tokenizer = prepare_model(model_search_query, is_pretrained=True)

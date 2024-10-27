@@ -15,6 +15,8 @@ from huggingface_hub import HfApi
 from utils import run_llm
 from datasets import DatasetDict, Dataset
 
+from utils import run_llm, extract_content_between_tags
+
 def search_datasets(query, max_results=5):
     api = HfApi()
     results = []
@@ -149,12 +151,28 @@ def rename_dataset_with_ai(dataset):
 
     return new_dataset
 
-def prepare_dataset(query):
-    results = search_datasets(query)
-    selected_dataset = results[0]
-    dataset = load_dataset(selected_dataset)
-    dataset = rename_dataset_with_ai(dataset)
-    return dataset
+def prepare_dataset(query, max_retries=5):
+    # results が [] である場合、llm によってquery を変更して、[] 出なくなるまで繰り返す
+    for _ in range(max_retries):
+        results = search_datasets(query)
+        if results:
+            selected_dataset = results[0]
+            dataset = load_dataset(selected_dataset, download_mode="force_redownload")
+            dataset = rename_dataset_with_ai(dataset)
+            return dataset
+        else:
+            prompt = f"""
+            The original query "{query}" did not return any results. Please modify the query to return results.
+            Original query may be too specific. Please modify the query to be more general.
+            Or the original query did not follow the correct format. Please modify the query to follow the correct format.
+            Note that query should be a one-word dataset name like "wikitext", "cifar10", "imagenet", "sarcasm", "emotion", etc.
+
+            <query>
+            "..."
+            </query>
+            """
+            query = run_llm(model_name="gemma2:9b", message=prompt)
+            query = extract_content_between_tags(query, "<query>", "</query>")
 
 def preprocess_dataset(dataset, model=None, tokenizer=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

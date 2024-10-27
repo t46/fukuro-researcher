@@ -9,3 +9,7 @@
 `nohup ollama serve > ollama.log 2>&1 &`
 
 `ollama pull gemma2:9b`
+
+`uv sync`
+
+`uv run python run_p2m_exp.py`
