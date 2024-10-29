@@ -13,3 +13,5 @@
 `uv sync`
 
 `uv run python run_p2m_exp.py`
+
+`uv run python run_inheritance.py`

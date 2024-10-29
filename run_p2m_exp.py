@@ -66,7 +66,7 @@ def save_prompts(prompts, filename):
         json.dump(prompts, f)
 
 def initialize_coder(workspace_directory, coder_llm_name):
-    visible_file_names = [f"{workspace_directory}/p2m_experiment.py"]
+    visible_file_names = [f"{workspace_directory}/p2m_experiment.py", f"{workspace_directory}/algorithm.py"]
     io = InputOutput(yes=True, chat_history_file=f"{workspace_directory}/aider.txt")
     coder_model = Model(coder_llm_name)
     return Coder.create(main_model=coder_model, fnames=visible_file_names, io=io, stream=False, use_git=False, edit_format="diff")
@@ -89,17 +89,17 @@ def main():
 
     # Research context and proposition
     research_context = """
-    Large language models (LLMs) have demonstrated remarkable capabilities across various natural language tasks, yet their ability to perform complex logical reasoning, particularly in zero-shot scenarios, remains a significant challenge. While these models can effectively handle pattern matching and statistical inference, they often struggle with structured logical deduction and systematic reasoning. This limitation becomes particularly evident when models encounter novel problem structures or need to apply logical principles across different domains. Current approaches typically rely heavily on extensive fine-tuning or elaborate prompt engineering to achieve acceptable performance in logical reasoning tasks, making them impractical for real-world applications that require flexible and robust reasoning capabilities.
-    Recent studies have highlighted a crucial gap between the statistical learning paradigm that underlies current LLMs and the kind of systematic logical reasoning that humans naturally employ. This disconnect manifests in several ways: inconsistent performance across similar logical problems, difficulty in providing transparent explanations for their reasoning steps, and limited ability to transfer logical principles from one context to another. These challenges are compounded by the fact that most existing approaches to improving logical reasoning capabilities focus on enhancing pattern recognition through larger datasets or more sophisticated architectures, rather than addressing the fundamental need for structured logical thinking.
-    Furthermore, the opacity of current models' reasoning processes poses a significant barrier to their practical application in fields requiring reliable logical inference. Without clear insight into how models arrive at their conclusions, it becomes difficult to validate their reasoning or identify potential logical fallacies. This lack of transparency not only limits the models' utility in critical applications but also hampers our ability to systematically improve their reasoning capabilities.
+    The hallucination problem in Large Language Models (LLMs) — where models generate inaccurate or non-factual content — is a critical issue, especially in high-stakes fields like healthcare, law, and education. 
+
+    Challenge: Automatic Detection and Evaluation of Hallucinations
+
+    Background: Hallucinated content lacks clear error messages, making manual verification costly and time-consuming.
     """
 
     proposition_idea = """
-    To address these challenges, we propose a novel Meta-Cognitive Verification Framework (MCVF) that enhances zero-shot logical reasoning capabilities in LLMs. The core innovation of MCVF lies in its introduction of a dedicated meta-cognitive layer that actively monitors and verifies the model's reasoning process in real-time. This layer operates as a separate but integrated component within the model architecture, specifically designed to perform three crucial functions: logical consistency checking, uncertainty quantification, and reasoning path validation.
-    The meta-cognitive layer implements a novel attention mechanism that tracks logical dependencies between different reasoning steps. As the model processes a logical problem, this mechanism constructs a dynamic dependency graph that represents the relationships between premises, intermediate conclusions, and final deductions. This graph structure enables the model to perform continuous consistency checks, identifying potential contradictions or gaps in the reasoning chain before they propagate to the final conclusion.
-    A key feature of MCVF is its ability to quantify uncertainty at each step of the reasoning process. Unlike traditional approaches that simply provide a final confidence score, our framework generates granular uncertainty metrics for each intermediate logical step. This is achieved through a specialized uncertainty estimation module that combines Bayesian neural networks with symbolic logic principles. The module assesses both aleatoric uncertainty (inherent in the problem structure) and epistemic uncertainty (stemming from the model's knowledge limitations) to provide a comprehensive understanding of the reliability of each reasoning step.
-    To implement this framework, we introduce a novel architecture that integrates transformer-based neural networks with symbolic reasoning components. The transformer backbone handles the initial processing of natural language input, while the meta-cognitive layer operates on a more abstract level, working with formalized representations of logical relationships. This hybrid approach allows the model to leverage the strengths of both neural and symbolic processing, creating a more robust and interpretable reasoning system.
-    We complement this architectural innovation with a specialized training methodology that emphasizes the development of meta-cognitive awareness. The training process utilizes a curriculum of increasingly complex logical problems, where the model is explicitly trained to identify and correct its own reasoning errors. This includes exposure to adversarial examples specifically designed to trigger logical fallacies, helping the model develop more robust verification capabilities.
+    - Consistency Checking Algorithm: Generate multiple outputs and detect inconsistencies among them.
+    - Fact-checking with Ensemble Models: Integrate multiple fact-checking engines to cross-validate outputs in real time.
+    - Context-aware Error Detection: Automatically identify hallucinations by comparing generated text with pre-defined knowledge bases.
     """
 
     # Execute steps

@@ -29,7 +29,7 @@ def load_model(model_id, is_pretrained):
     #     return model, tokenizer
     
     if is_pretrained:
-        model = AutoModelForCausalLM.from_pretrained(model_id, download_mode="force_redownload")
+        model = AutoModelForCausalLM.from_pretrained(model_id)
         tokenizer = AutoTokenizer.from_pretrained(
             model_id,
             padding_side="left",

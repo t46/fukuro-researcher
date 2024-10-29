@@ -156,16 +156,23 @@ def prepare_dataset(query, max_retries=5):
     for _ in range(max_retries):
         results = search_datasets(query)
         if results:
-            selected_dataset = results[0]
-            dataset = load_dataset(selected_dataset, download_mode="force_redownload")
+            dataset_name = results[0]
+            try:
+                dataset = load_dataset(dataset_name, download_mode="force_redownload")
+            except ValueError as e:
+                if "Config name is missing" in str(e):
+                    llm_response = run_llm(model_name="gemma2:9b", message=f"The error message is: {e}. Please provide the config for the dataset {dataset_name}. Config name must be enclosed in <config> and </config> tags.")
+                    config_name = extract_content_between_tags(llm_response, "<config>", "</config>")
+                    dataset = load_dataset(dataset_name, config_name, download_mode="force_redownload")
             dataset = rename_dataset_with_ai(dataset)
-            return dataset
+            return dataset_name,dataset
         else:
             prompt = f"""
             The original query "{query}" did not return any results. Please modify the query to return results.
-            Original query may be too specific. Please modify the query to be more general.
+            Original query may be too specific or too general. Please modify the query to be more general or more specific.
             Or the original query did not follow the correct format. Please modify the query to follow the correct format.
             Note that query should be a one-word dataset name like "wikitext", "cifar10", "imagenet", "sarcasm", "emotion", etc.
+            Don't ask me, think yourself, and return the modified query.
 
             <query>
             "..."
