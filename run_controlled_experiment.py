@@ -78,14 +78,32 @@ def main():
     max_edit_trials = 10
 
     # Research context and proposition
-    research_context = """
-    With the growing availability of smaller yet powerful local language models such as google/gemma-2-2b-it, there is a growing interest in maximizing their performance while keeping computational and resource costs low. However, the challenge lies in maintaining competitive performance levels across different NLP tasks without access to the scale of training resources or architecture size that larger LLMs enjoy. Existing optimization techniques such as low-rank adaptation (LoRA) or prompt-tuning have improved smaller models' utility, but identifying ways to better exploit such models remains an open problem. Additionally, the balance between task generalization and task-specific fine-tuning presents a crucial tradeoff for real-world usability, especially in constrained environments such as edge computing or private deployments.
+    # research_context = """
+    # With the growing availability of smaller yet powerful local language models such as google/gemma-2-2b-it, there is a growing interest in maximizing their performance while keeping computational and resource costs low. However, the challenge lies in maintaining competitive performance levels across different NLP tasks without access to the scale of training resources or architecture size that larger LLMs enjoy. Existing optimization techniques such as low-rank adaptation (LoRA) or prompt-tuning have improved smaller models' utility, but identifying ways to better exploit such models remains an open problem. Additionally, the balance between task generalization and task-specific fine-tuning presents a crucial tradeoff for real-world usability, especially in constrained environments such as edge computing or private deployments.
+    # """
+
+    # proposition_idea = """
+    # We propose Dynamic Prompt Assembly (DPA), a novel technique where prompts are generated dynamically based on the model's intermediate outputs and task requirements. Instead of relying on static prompt templates, DPA allows the model to iteratively refine and assemble its own prompts by evaluating intermediate outputs during inference. This self-assembly process introduces a layer of model-driven reasoning at runtime, leading to adaptive performance improvements across diverse tasks. By leveraging lightweight dynamic adjustments, this method ensures performance close to state-of-the-art large models, while remaining feasible for smaller architectures such as gemma-2-2b-it.
+    # DPA can also serve as an efficient fine-tuning alternative, reducing the need for extensive retraining while allowing the model to specialize incrementally on specific tasks through real-time prompt modulation. This technique promises to bridge the gap between small models' capabilities and real-world demands, offering a pathway to deploy effective, cost-efficient AI solutions.
+    # """
+
+    research_idea_generation_prompt = """
+    There is a powerful yet small-scale local LLM called google/gemma-2-2b-it. You will now conduct research using this model.
+    The research could propose optimization methods, new neural architectures, new evaluation methods, or new prompting techniques, or any other ideas.
+    Please generate the following two items:
+    research_context: This describes the research problem and its background.
+    proposition_idea: This describes the proposed idea to solve the problem. Please focus on the single most interesting idea.
+
+    <research_context>
+    ...
+    </research_context>
+
+    <proposition_idea>
+    ...
+    </proposition_idea>
     """
 
-    proposition_idea = """
-    We propose Dynamic Prompt Assembly (DPA), a novel technique where prompts are generated dynamically based on the model's intermediate outputs and task requirements. Instead of relying on static prompt templates, DPA allows the model to iteratively refine and assemble its own prompts by evaluating intermediate outputs during inference. This self-assembly process introduces a layer of model-driven reasoning at runtime, leading to adaptive performance improvements across diverse tasks. By leveraging lightweight dynamic adjustments, this method ensures performance close to state-of-the-art large models, while remaining feasible for smaller architectures such as gemma-2-2b-it.
-    DPA can also serve as an efficient fine-tuning alternative, reducing the need for extensive retraining while allowing the model to specialize incrementally on specific tasks through real-time prompt modulation. This technique promises to bridge the gap between small models' capabilities and real-world demands, offering a pathway to deploy effective, cost-efficient AI solutions.
-    """
+    research_context, proposition_idea = run_llm(model_name="claude-3-5-sonnet-20240620", message=research_idea_generation_prompt)
 
     # Execute steps
     copy_source_to_workspace(source_directory, workspace_directory)
