@@ -1,4 +1,4 @@
-`src` の中の `p2m_experiment.py` がメイン。これを AI に書き換えてもらう。`debug_p2m_experiment.py` は、そのままでも動く。
+`src` の中の `experiment.py` がメイン。これを AI に書き換えてもらう。
 
 .env に API キーを設定する。
 
@@ -12,6 +12,4 @@
 
 `uv sync`
 
-`uv run python run_p2m_exp.py`
-
-`uv run python run_inheritance.py`
+`uv run python run_controlled_experiment.py`
