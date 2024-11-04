@@ -15,7 +15,7 @@ def collate_fn(batch):
         'labels': labels
     }
 
-class Algorithm:
+class MLWorkflow:
     def __init__(self, model, tokenizer, device, tokenize_dataset):
         self.tokenizer = tokenizer
         self.device = device

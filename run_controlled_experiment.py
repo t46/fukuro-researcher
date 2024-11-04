@@ -55,7 +55,7 @@ def save_prompts(prompts, filename):
         json.dump(prompts, f)
 
 def initialize_coder(workspace_directory, coder_llm_name):
-    visible_file_names = [f"{workspace_directory}/algorithm.py", f"{workspace_directory}/inheritance_experiment.py"]
+    visible_file_names = [f"{workspace_directory}/mlworkflow.py", f"{workspace_directory}/experiment.py"]
     open(f"{workspace_directory}/aider.txt", "w").close()
     io = InputOutput(yes=True, chat_history_file=f"{workspace_directory}/aider.txt")
     coder_model = Model(coder_llm_name)
@@ -64,13 +64,13 @@ def initialize_coder(workspace_directory, coder_llm_name):
 def run_experiment(coder, prompt, workspace_directory, timeout=600):
     coder.run(prompt)
     cwd = os.path.abspath(workspace_directory)
-    command = ["uv", "run", "python", "inheritance_experiment.py"]
+    command = ["uv", "run", "python", "experiment.py"]
     return subprocess.run(command, cwd=cwd, stderr=subprocess.PIPE, text=True, timeout=timeout)
 
 def main():
     # Configuration
-    source_directory = "/root/src"  # "/root/fukuro-researcher/src"
-    workspace_directory_base = "/root/workspace"  # "/root/fukuro-researcher/workspace"
+    source_directory = "/root/src"
+    workspace_directory_base = "/root/workspace"
     workspace_directory = os.path.join(workspace_directory_base, source_directory.split("/")[-1])
     if not os.path.exists(workspace_directory):
         os.makedirs(workspace_directory)
@@ -109,23 +109,23 @@ def main():
         {dataset}
 
     Code Explanation:
-    algorithm.py represents the workflow of a machine learning research that verifies the effectiveness of the proposed method through comparative experiments. Specifically, given the dataset, model, and tokenizer, it executes Algorithm and NewAlgorithm (which is a modified version of Algorithm), and then compares and evaluates their results using compare_and_evaluate_algorithms
-    Algorithm represents a typical machine learning workflow where the model is trained on training data and then executed on test data. 
+    mlworkflow.py represents the workflow of a machine learning research that verifies the effectiveness of the proposed method through comparative experiments. Specifically, given the dataset, model, and tokenizer, it executes MLWorkflow and NewMLWorkflow (which is a modified version of MLWorkflow), and then compares and evaluates their results using compare_and_evaluate_proposition
+    MLWorkflow represents a typical machine learning workflow where the model is trained on training data and then executed on test data. 
     
-    inheritance_experiment.py represents the comparative experiment that validates the effectiveness of the proposed method through the comparison between Algorithm and NewAlgorithm.
-    NewAlgorithm inherits from Algorithm and modifies the workflow by overriding train_model, run_model, or both. 
-    Researcher implements the proposed idea in NewAlgorithm and the proposition idea and related parts are the only differences between Algorithm and NewAlgorithm.
-    This code embodies the idea that "machine learning research that validates a proposal through comparative experiments is an endeavor to determine whether adding a new proposal (NewAlgorithm) to an Algorithm that generates certain output from data yields better results in an expected sense."
+    experiment.py represents the comparative experiment that validates the effectiveness of the proposed method through the comparison between MLWorkflow and NewMLWorkflow.
+    NewMLWorkflow inherits from MLWorkflow and modifies the workflow by overriding train_model, run_model, or both. 
+    Researcher implements the proposed idea in NewMLWorkflow and the proposition idea and related parts are the only differences between MLWorkflow and NewMLWorkflow.
+    This code embodies the idea that "machine learning research that validates a proposal through comparative experiments is an endeavor to determine whether adding a new proposal (NewMLWorkflow) to an MLWorkflow that generates certain output from data yields better results in an expected sense."
 
     Task Description:
-    Please edit inheritance_experiment.py to implement the Proposition Idea and design experiments to validate its feasibility based on the Research Context.
-    Your task is to complete the experimental code by editing inheritance_experiment.py.
+    Please edit experiment.py to implement the Proposition Idea and design experiments to validate its feasibility based on the Research Context.
+    Your task is to complete the experimental code by editing experiment.py.
     Please edit the following parts, but do not change any other parts:
 
-    NewAlgorithm
-        To implement the Proposition Idea and design experiments to validate its effectiveness, override one or all methods of Algorithm. For example, if you're proposing a new Optimizer, implement the new optimizer and use it in train_model instead of the existing optimizer. If you're proposing a new neural architecture, implement the new architecture in the Hugging Face format and assign it in the part where self.model = model.to(device) is set in the __init__ method. If you're proposing a prompt technique to improve the zero-shot inference performance of a pre-trained model, implement the prompt technique in the run_model part. In this way, first consider which part of the machine learning workflow the Proposition Idea is addressing, and then implement NewAlgorithm to properly implement and experiment with the proposal. When doing so, make sure to define all the information needed to see if the proposal is superior to existing methods in the expected sense using self.log.
+    NewMLWorkflow
+        To implement the Proposition Idea and design experiments to validate its effectiveness, override one or all methods of MLWorkflow. For example, if you're proposing a new Optimizer, implement the new optimizer and use it in train_model instead of the existing optimizer. If you're proposing a new neural architecture, implement the new architecture in the Hugging Face format and assign it in the part where self.model = model.to(device) is set in the __init__ method. If you're proposing a prompt technique to improve the zero-shot inference performance of a pre-trained model, implement the prompt technique in the run_model part. In this way, first consider which part of the machine learning workflow the Proposition Idea is addressing, and then implement NewMLWorkflow to properly implement and experiment with the proposal. When doing so, make sure to define all the information needed to see if the proposal is superior to existing methods in the expected sense using self.log.
 
-    compare_and_evaluate_algorithms
+    compare_and_evaluate_proposition
         Implement evaluation criteria to examine how and in what sense the Proposition Idea is superior to existing methods. For example, if the proposed method is expected to predict better than existing methods, you might compare if the accuracy is higher. Or, if you're proposing an optimization method that's expected to converge faster, you might compare the number of steps it took before the loss reached a certain value. Also, if you're proposing a method with superior interpretability, you might define some metric that shows that the internal representation of the model is more interpretable in some sense and compare that. In this way, consider in what sense the Proposition Idea is expected to be superior to existing methods in relation to the Research Context, and implement evaluation metrics that can compare this.
     """.format(research_context=research_context, proposition_idea=proposition_idea, dataset_name=dataset_name, dataset=df.head(1))
 
