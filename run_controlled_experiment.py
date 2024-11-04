@@ -55,7 +55,7 @@ def save_prompts(prompts, filename):
         json.dump(prompts, f)
 
 def initialize_coder(workspace_directory, coder_llm_name):
-    visible_file_names = [f"{workspace_directory}/mlworkflow.py", f"{workspace_directory}/experiment.py"]
+    visible_file_names = [f"{workspace_directory}/mlworkflow.py", f"{workspace_directory}/tokenize_dataset_func_generator.py"]
     open(f"{workspace_directory}/aider.txt", "w").close()
     io = InputOutput(yes=True, chat_history_file=f"{workspace_directory}/aider.txt")
     coder_model = Model(coder_llm_name)
@@ -96,6 +96,8 @@ def main():
 
     coder = initialize_coder(workspace_directory, coder_llm_name)
 
+    mlworkflow_py = open(f"{workspace_directory}/mlworkflow.py", "r").read()
+
     experiment_coding_prompt = """
     Research Context: {research_context}
     Proposition Idea: {proposition_idea}
@@ -107,6 +109,9 @@ def main():
         Dataset:
         {dataset_name}
         {dataset}
+
+        mlworkflow.py:
+        {mlworkflow_py}
 
     Code Explanation:
     mlworkflow.py represents the workflow of a machine learning research that verifies the effectiveness of the proposed method through comparative experiments. Specifically, given the dataset, model, and tokenizer, it executes MLWorkflow and NewMLWorkflow (which is a modified version of MLWorkflow), and then compares and evaluates their results using compare_and_evaluate_proposition
@@ -127,7 +132,7 @@ def main():
 
     compare_and_evaluate_proposition
         Implement evaluation criteria to examine how and in what sense the Proposition Idea is superior to existing methods. For example, if the proposed method is expected to predict better than existing methods, you might compare if the accuracy is higher. Or, if you're proposing an optimization method that's expected to converge faster, you might compare the number of steps it took before the loss reached a certain value. Also, if you're proposing a method with superior interpretability, you might define some metric that shows that the internal representation of the model is more interpretable in some sense and compare that. In this way, consider in what sense the Proposition Idea is expected to be superior to existing methods in relation to the Research Context, and implement evaluation metrics that can compare this.
-    """.format(research_context=research_context, proposition_idea=proposition_idea, dataset_name=dataset_name, dataset=df.head(1))
+    """.format(research_context=research_context, proposition_idea=proposition_idea, dataset_name=dataset_name, dataset=df.head(1), mlworkflow_py=mlworkflow_py)
 
     for i in range(max_edit_trials):
         run_result = run_experiment(coder, experiment_coding_prompt, workspace_directory)
