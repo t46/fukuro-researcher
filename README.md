@@ -6,7 +6,6 @@
 `docker run -it --rm --env-file $(pwd)/.env -v $(pwd):/root fukuro-researcher`
 
 ## コンテナ内での操作
-`nohup ollama serve > ollama.log 2>&1 &`
 
 `ollama pull gemma2:9b`
 

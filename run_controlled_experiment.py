@@ -30,7 +30,10 @@ def get_dataset(research_context, proposition_idea, workspace_directory):
 
     Note that query input to `search` is a string that will be contained in the returned datasets.
 
-    The query should be a word that is likely included in the desired dataset name but unlikely to be found in unrelated dataset names. It should primarily consist of terms related to machine learning tasks or concepts. In particular, it should include words associated with the operations required for validating the method you proposed with the dataset or task.
+    The query should be a word that is likely included in the desired dataset name but unlikely to be found in unrelated dataset names. 
+    It should primarily consist of terms related to machine learning tasks or concepts. In particular, it should include words associated with the operations required for validating the method you proposed with the dataset or task.
+
+    First, think about the machine learning task that to be used in the experiment. Then, generate a query that is likely to be included in the dataset name of the desired dataset.
 
     Generate only one query and the query should be single word contined in the text dataset name.
 
@@ -50,12 +53,12 @@ def get_dataset(research_context, proposition_idea, workspace_directory):
 
     return dataset_name, dataset
 
-def save_prompts(prompts, filename):
+def save_output(output, filename):
     with open(filename, "w") as f:
-        json.dump(prompts, f)
+        json.dump(output, f)
 
 def initialize_coder(workspace_directory, coder_llm_name):
-    visible_file_names = [f"{workspace_directory}/mlworkflow.py", f"{workspace_directory}/tokenize_dataset_func_generator.py"]
+    visible_file_names = [f"{workspace_directory}/mlworkflow.py"]
     open(f"{workspace_directory}/aider.txt", "w").close()
     io = InputOutput(yes=True, chat_history_file=f"{workspace_directory}/aider.txt")
     coder_model = Model(coder_llm_name)
@@ -65,7 +68,16 @@ def run_experiment(coder, prompt, workspace_directory, timeout=600):
     coder.run(prompt)
     cwd = os.path.abspath(workspace_directory)
     command = ["uv", "run", "python", "experiment.py"]
-    return subprocess.run(command, cwd=cwd, stderr=subprocess.PIPE, text=True, timeout=timeout)
+    
+    try:
+        result = subprocess.run(command, cwd=cwd, stderr=subprocess.PIPE, text=True, timeout=timeout)
+        return result
+    except subprocess.TimeoutExpired as e:
+        return subprocess.CompletedProcess(
+            args=command,
+            returncode=1,
+            stderr=f"Timeout error: Process took longer than {timeout} seconds\n{str(e)}"
+        )
 
 def main():
     # Configuration
@@ -103,12 +115,31 @@ def main():
     </proposition_idea>
     """
 
-    research_context, proposition_idea = run_llm(model_name="claude-3-5-sonnet-20240620", message=research_idea_generation_prompt)
-
     # Execute steps
     copy_source_to_workspace(source_directory, workspace_directory)
+
+    llm_output = run_llm(model_name="gemma2:9b", message=research_idea_generation_prompt)  # claude-3-5-sonnet-20240620
+    research_context = extract_content_between_tags(llm_output, "<research_context>", "</research_context>")
+    proposition_idea = extract_content_between_tags(llm_output, "<proposition_idea>", "</proposition_idea>")
+
+    # save research_idea_generation_prompt with its outputs as a json file
+    prompt_and_output = {
+        "prompt": research_idea_generation_prompt,
+        "output": {
+            "research_context": research_context,
+            "proposition_idea": proposition_idea
+        }
+    }
+    save_output(prompt_and_output, f"{workspace_directory}/research_idea_generation_prompt.json")
+
     dataset_name, dataset = get_dataset(research_context, proposition_idea, workspace_directory)
     df = pd.DataFrame(dataset['train'])
+
+    # save dataset name as a json file
+    dataset_name_data = {
+        "dataset_name": dataset_name
+    }
+    save_output(dataset_name_data, f"{workspace_directory}/dataset_name.json")
 
     # show first 1 sample of dataset
 
@@ -150,6 +181,9 @@ def main():
 
     compare_and_evaluate_proposition
         Implement evaluation criteria to examine how and in what sense the Proposition Idea is superior to existing methods. For example, if the proposed method is expected to predict better than existing methods, you might compare if the accuracy is higher. Or, if you're proposing an optimization method that's expected to converge faster, you might compare the number of steps it took before the loss reached a certain value. Also, if you're proposing a method with superior interpretability, you might define some metric that shows that the internal representation of the model is more interpretable in some sense and compare that. In this way, consider in what sense the Proposition Idea is expected to be superior to existing methods in relation to the Research Context, and implement evaluation metrics that can compare this.
+
+    tokenize_dataset
+        Implement the tokenize_dataset function to convert the dataset into a format suitable for the current research context. Input and target should be chosen appropriately based on the current research context and dataset structure.
     """.format(research_context=research_context, proposition_idea=proposition_idea, dataset_name=dataset_name, dataset=df.head(1), mlworkflow_py=mlworkflow_py)
 
     for i in range(max_edit_trials):

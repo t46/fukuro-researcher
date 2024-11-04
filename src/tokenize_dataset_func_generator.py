@@ -61,9 +61,9 @@ def generate_tokenize_dataset_func(dataset_sample):
                 for batch in tqdm(train_loader, desc=f"Epoch {{epoch + 1}}/{{epochs}}"):
                     input_ids = batch['input_ids'].to(device)
                     attention_mask = batch['attention_mask'].to(device)
-                    labels = batch['labels'].to(device)
+                    targets = batch['targets'].to(device)
 
-                    outputs = model(input_ids, attention_mask=attention_mask, labels=labels)
+                    outputs = model(input_ids, attention_mask=attention_mask, targets=targets)
     ```
 
     Generate a `tokenize_dataset` function that make the above code work:
@@ -73,14 +73,14 @@ def generate_tokenize_dataset_func(dataset_sample):
             # encode input
             ... = examples["..."]
             encodings = tokenizer(..., truncation=True, padding="max_length", max_length=tokenizer_max_length)
-            # encode label
+            # encode target
             ... = examples["..."]
-            encodings_label = tokenizer(..., truncation=True, padding="max_length", max_length=tokenizer_max_length)
+            encodings_target = tokenizer(..., truncation=True, padding="max_length", max_length=tokenizer_max_length)
 
             encoding_dict = {{
                 'input_ids': encodings['input_ids'],
                 'attention_mask': encodings['attention_mask'],
-                'labels': encodings_label['input_ids']
+                'targets': encodings_target['input_ids']
             }}
 
             return encoding_dict

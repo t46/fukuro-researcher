@@ -20,7 +20,7 @@ from utils import run_llm, extract_content_between_tags
 def search_datasets(query, max_results=5):
     api = HfApi()
     results = []
-    for dataset in api.list_datasets(search=query, sort="downloads", direction=-1):
+    for dataset in api.list_datasets(search=query, sort="downloads", direction=-1, filter="modality:text"):
         results.append(dataset.id)
         if len(results) == max_results:
             break
@@ -243,8 +243,8 @@ def tokenize_dataset(dataset: datasets.Dataset, tokenizer, tokenizer_max_length:
         outputs = examples["output"]
         full_texts = [f"{inp} {out}" for inp, out in zip(inputs, outputs)]
         encodings = tokenizer(full_texts, truncation=True, padding="max_length", max_length=tokenizer_max_length)
-        encodings["labels"] = encodings["input_ids"].copy()
-        encodings["labels"] = [[-100 if token == tokenizer.pad_token_id else token for token in labels] for labels in encodings["labels"]]
+        encodings["targets"] = encodings["input_ids"].copy()
+        encodings["targets"] = [[-100 if token == tokenizer.pad_token_id else token for token in targets] for targets in encodings["targets"]]
         return encodings
 
     return dataset.map(tokenize_function, batched=True, remove_columns=dataset.column_names)
