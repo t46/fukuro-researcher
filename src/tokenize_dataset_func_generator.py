@@ -1,17 +1,13 @@
-from datasets import load_dataset
 import os
 import sys
 import datasets
 
 
-# 現在のファイルのディレクトリを取得
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
-# 現在のディレクトリをパスに追加
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from utils import run_llm
 
-# def tokenize_dataset(... で始まるtokenize_datasetを抜き出す
 import re
 
 def extract_tokenize_dataset_function(response):
@@ -99,29 +95,16 @@ def generate_tokenize_dataset_func(dataset_sample):
         model_name="gemma2:9b",
         message=prompt
     )
-    # print(response)
 
     tokenize_dataset_function_str = extract_tokenize_dataset_function(response)
 
-    # Create a new namespace
     namespace = {
         'datasets': datasets,
         'Dataset': datasets.Dataset
     }
 
-    # Execute the string in the new namespace
-    print(tokenize_dataset_function_str)
     exec(tokenize_dataset_function_str, namespace)
 
-    # Extract the function from the namespace
     tokenize_dataset = namespace['tokenize_dataset']
 
     return tokenize_dataset
-
-if __name__ == "__main__":
-    selected_dataset = "wis-k/instruction-following-eval"  # squad
-    dataset = load_dataset(selected_dataset)
-    dataset_sample = dataset["train"][0]
-    print(dataset_sample)
-
-    tokenize_dataset = generate_tokenize_dataset_func(dataset_sample)
