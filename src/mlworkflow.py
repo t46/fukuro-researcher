@@ -40,16 +40,12 @@ class MLWorkflow:
         import time
         start_time = time.time()
 
-        # Concatenate and tokenize datasets
-        # train_dataset = concatenate_datasets(training_datasets)
         train_dataset = self.tokenize_dataset(training_datasets, self.tokenizer, self.tokenizer.model_max_length)
 
         epochs = 3
 
-        # Create data loader
         train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, collate_fn=collate_fn)
 
-        # Set up optimizer and scheduler
         optimizer_name = "AdamW"
         optimizer = getattr(optim, optimizer_name)(self.model.parameters(), lr=5e-5, weight_decay=0.01)
         total_steps = len(train_loader) * epochs
@@ -57,7 +53,6 @@ class MLWorkflow:
 
         loss_fn = torch.nn.CrossEntropyLoss()
 
-        # Training loop
         for epoch in range(epochs):
             self.model.train()
             total_loss = 0

@@ -1,21 +1,18 @@
 import os
 import sys
 import datasets
-
+import re
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from utils import run_llm
 
-import re
 
 def extract_tokenize_dataset_function(response):
-    # def tokenize_dataset(... で始まり、returnで終わる関数全体を探す
     pattern = r'def tokenize_dataset\(.*?^    return.*?$'
     match = re.search(pattern, response, re.DOTALL | re.MULTILINE)
     if match:
-        # 関数全体を取得
         tokenize_dataset_function_str = match.group(0)
         return tokenize_dataset_function_str
     else:
