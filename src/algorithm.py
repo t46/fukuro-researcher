@@ -5,7 +5,7 @@ from tqdm import tqdm
 import datasets
 from transformers import get_linear_schedule_with_warmup
 
-def collate_fn(batch):  # TODO: 別の場所に移す
+def collate_fn(batch):
     input_ids = torch.tensor([item['input_ids'] for item in batch])
     attention_mask = torch.tensor([item['attention_mask'] for item in batch])
     labels = torch.tensor([item['labels'] for item in batch])
@@ -85,13 +85,11 @@ class Algorithm:
         self.log["train_time"] = time.time() - start_time
         self.log["model_parameters"] = self.model.state_dict()
 
-        # モデルの保存
         self.model.save_pretrained("artifacts")
         self.tokenizer.save_pretrained("artifacts")
 
         return self.model, self.tokenizer
 
-    # モデルによる推論&テストデータによる評価（loss ではなく）
     def run_model(self, test_dataset: datasets.Dataset):
         import time
         start_time = time.time()
@@ -104,20 +102,17 @@ class Algorithm:
         with torch.no_grad():
             for batch in tqdm(test_loader, desc="Evaluating"):
                 input_ids = batch['input_ids'].to(self.device)
-                # attention_mask = batch['attention_mask'].to(self.device)
 
                 outputs = self.model.generate(
                     input_ids,
-                    attention_mask=batch['attention_mask'],  # attention_maskを明示的に渡す
+                    attention_mask=batch['attention_mask'],
                     max_new_tokens=50,
                     num_return_sequences=1,
                     do_sample=True,
-                    pad_token_id=self.tokenizer.pad_token_id  # pad_token_idを明示的に指定
+                    pad_token_id=self.tokenizer.pad_token_id
                 )
                 generated_texts = self.tokenizer.batch_decode(outputs, skip_special_tokens=True) 
                 all_outputs.extend(generated_texts)
-                # outputs = self.model(input_ids, attention_mask=attention_mask)
-                # all_outputs.extend(outputs.logits.argmax(dim=-1).cpu().tolist())
 
         self.log["inference_time"] = time.time() - start_time
         self.log["generated_outputs"] = all_outputs

@@ -30,6 +30,8 @@ def get_dataset(research_context, proposition_idea, workspace_directory):
 
     Note that query input to `search` is a string that will be contained in the returned datasets.
 
+    The query should be a word that is likely included in the desired dataset name but unlikely to be found in unrelated dataset names. It should primarily consist of terms related to machine learning tasks or concepts. In particular, it should include words associated with the operations required for validating the method you proposed with the dataset or task.
+
     Generate only one query and the query should be single word contined in the text dataset name.
 
     <query>
@@ -54,6 +56,7 @@ def save_prompts(prompts, filename):
 
 def initialize_coder(workspace_directory, coder_llm_name):
     visible_file_names = [f"{workspace_directory}/algorithm.py", f"{workspace_directory}/inheritance_experiment.py"]
+    open(f"{workspace_directory}/aider.txt", "w").close()
     io = InputOutput(yes=True, chat_history_file=f"{workspace_directory}/aider.txt")
     coder_model = Model(coder_llm_name)
     return Coder.create(main_model=coder_model, fnames=visible_file_names, io=io, stream=False, use_git=False, edit_format="diff")
