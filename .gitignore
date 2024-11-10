@@ -169,3 +169,7 @@ data/
 *ckpt.pt
 *.zip
 ICLR2022-OpenReviewData/
+
+.pki/
+.bash_history
+.ollama
