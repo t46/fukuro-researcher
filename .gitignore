@@ -173,3 +173,15 @@ ICLR2022-OpenReviewData/
 .pki/
 .bash_history
 .ollama
+
+# Project specific directories
+**/artifacts/
+**/dataset/
+
+# Generated files
+result.pdf
+results.csv
+
+# Config and binaries
+.config/
+bin/
