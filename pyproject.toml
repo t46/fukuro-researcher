@@ -10,6 +10,7 @@ dependencies = [
     "backoff>=2.2.1",
     "datasets>=2.21.0",
     "huggingface-hub>=0.24.6",
+    "ipykernel>=6.29.5",
     "jupyter>=1.1.1",
     "matplotlib>=3.9.2",
     "mlcroissant>=1.0.8",

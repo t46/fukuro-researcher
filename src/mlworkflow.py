@@ -4,18 +4,19 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 import datasets
 from transformers import get_linear_schedule_with_warmup
+from tqdm import tqdm
 
 def collate_fn(batch):
     input_ids = torch.tensor([item['input_ids'] for item in batch])
     attention_mask = torch.tensor([item['attention_mask'] for item in batch])
-    labels = torch.tensor([item['labels'] for item in batch])
+    targets = torch.tensor([item['targets'] for item in batch])
     return {
         'input_ids': input_ids,
         'attention_mask': attention_mask,
-        'labels': labels
+        'targets': targets
     }
 
-class Algorithm:
+class MLWorkflow:
     def __init__(self, model, tokenizer, device, tokenize_dataset):
         self.tokenizer = tokenizer
         self.device = device
@@ -40,16 +41,12 @@ class Algorithm:
         import time
         start_time = time.time()
 
-        # Concatenate and tokenize datasets
-        # train_dataset = concatenate_datasets(training_datasets)
         train_dataset = self.tokenize_dataset(training_datasets, self.tokenizer, self.tokenizer.model_max_length)
 
         epochs = 3
 
-        # Create data loader
         train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, collate_fn=collate_fn)
 
-        # Set up optimizer and scheduler
         optimizer_name = "AdamW"
         optimizer = getattr(optim, optimizer_name)(self.model.parameters(), lr=5e-5, weight_decay=0.01)
         total_steps = len(train_loader) * epochs
@@ -57,19 +54,18 @@ class Algorithm:
 
         loss_fn = torch.nn.CrossEntropyLoss()
 
-        # Training loop
-        for epoch in range(epochs):
+        for epoch in tqdm(range(epochs), desc="Training"):
             self.model.train()
             total_loss = 0
 
             for batch in tqdm(train_loader, desc=f"Epoch {epoch + 1}/{epochs}"):
                 input_ids = batch['input_ids'].to(self.device)
                 attention_mask = batch['attention_mask'].to(self.device)
-                labels = batch['labels'].to(self.device)
+                targets = batch['targets'].to(self.device)
 
-                outputs = self.model(input_ids, attention_mask=attention_mask, labels=labels)
+                outputs = self.model(input_ids, attention_mask=attention_mask, targets=targets)
                 logits = outputs.logits
-                loss = loss_fn(logits.view(-1, logits.size(-1)), labels.view(-1))
+                loss = loss_fn(logits.view(-1, logits.size(-1)), targets.view(-1))
                 total_loss += loss.item()
 
                 loss.backward()
