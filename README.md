@@ -12,3 +12,5 @@
 `uv sync`
 
 `uv run python run_controlled_experiment.py`
+
+`uv run python analysis.py`

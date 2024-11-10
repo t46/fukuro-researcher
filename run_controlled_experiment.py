@@ -33,7 +33,7 @@ def get_dataset(research_context, proposition_idea, workspace_directory):
     The query should be a word that is likely included in the desired dataset name but unlikely to be found in unrelated dataset names. 
     It should primarily consist of terms related to machine learning tasks or concepts. In particular, it should include words associated with the operations required for validating the method you proposed with the dataset or task.
 
-    First, think about the machine learning task that to be used in the experiment. Then, generate a query that is likely to be included in the dataset name of the desired dataset.
+    First, think about the machine learning **task** that to be used in the experiment. Then, generate a query that is likely to be included in the dataset name to be used for the task.
 
     Generate only one query and the query should be single word contined in the text dataset name.
 
@@ -58,13 +58,13 @@ def save_output(output, filename):
         json.dump(output, f)
 
 def initialize_coder(workspace_directory, coder_llm_name):
-    visible_file_names = [f"{workspace_directory}/mlworkflow.py"]
+    visible_file_names = [f"{workspace_directory}/experiment.py"]
     open(f"{workspace_directory}/aider.txt", "w").close()
     io = InputOutput(yes=True, chat_history_file=f"{workspace_directory}/aider.txt")
     coder_model = Model(coder_llm_name)
     return Coder.create(main_model=coder_model, fnames=visible_file_names, io=io, stream=False, use_git=False, edit_format="diff")
 
-def run_experiment(coder, prompt, workspace_directory, timeout=600):
+def run_experiment(coder, prompt, workspace_directory, timeout=6000):
     coder.run(prompt)
     cwd = os.path.abspath(workspace_directory)
     command = ["uv", "run", "python", "experiment.py"]
@@ -89,22 +89,14 @@ def main():
     coder_llm_name = "claude-3-5-sonnet-20240620" # "gemma2:9b"
     max_edit_trials = 10
 
-    # Research context and proposition
-    # research_context = """
-    # With the growing availability of smaller yet powerful local language models such as google/gemma-2-2b-it, there is a growing interest in maximizing their performance while keeping computational and resource costs low. However, the challenge lies in maintaining competitive performance levels across different NLP tasks without access to the scale of training resources or architecture size that larger LLMs enjoy. Existing optimization techniques such as low-rank adaptation (LoRA) or prompt-tuning have improved smaller models' utility, but identifying ways to better exploit such models remains an open problem. Additionally, the balance between task generalization and task-specific fine-tuning presents a crucial tradeoff for real-world usability, especially in constrained environments such as edge computing or private deployments.
-    # """
-
-    # proposition_idea = """
-    # We propose Dynamic Prompt Assembly (DPA), a novel technique where prompts are generated dynamically based on the model's intermediate outputs and task requirements. Instead of relying on static prompt templates, DPA allows the model to iteratively refine and assemble its own prompts by evaluating intermediate outputs during inference. This self-assembly process introduces a layer of model-driven reasoning at runtime, leading to adaptive performance improvements across diverse tasks. By leveraging lightweight dynamic adjustments, this method ensures performance close to state-of-the-art large models, while remaining feasible for smaller architectures such as gemma-2-2b-it.
-    # DPA can also serve as an efficient fine-tuning alternative, reducing the need for extensive retraining while allowing the model to specialize incrementally on specific tasks through real-time prompt modulation. This technique promises to bridge the gap between small models' capabilities and real-world demands, offering a pathway to deploy effective, cost-efficient AI solutions.
-    # """
-
     research_idea_generation_prompt = """
     There is a powerful yet small-scale local LLM called google/gemma-2-2b-it. You will now conduct research using this model.
     The research could propose optimization methods, new neural architectures, new evaluation methods, or new prompting techniques, or any other ideas.
     Please generate the following two items:
     research_context: This describes the research problem and its background.
     proposition_idea: This describes the proposed idea to solve the problem. Please focus on the single most interesting idea.
+
+    Please keep the proposed ideas as simple as possible and ensure they have a high likelihood of feasibility.
 
     <research_context>
     ...
@@ -121,6 +113,16 @@ def main():
     llm_output = run_llm(model_name="gemma2:9b", message=research_idea_generation_prompt)  # claude-3-5-sonnet-20240620
     research_context = extract_content_between_tags(llm_output, "<research_context>", "</research_context>")
     proposition_idea = extract_content_between_tags(llm_output, "<proposition_idea>", "</proposition_idea>")
+
+    # Research context and proposition
+    # research_context = """
+    # With the growing availability of smaller yet powerful local language models such as google/gemma-2-2b-it, there is a growing interest in maximizing their performance while keeping computational and resource costs low. However, the challenge lies in maintaining competitive performance levels across different NLP tasks without access to the scale of training resources or architecture size that larger LLMs enjoy. Existing optimization techniques such as low-rank adaptation (LoRA) or prompt-tuning have improved smaller models' utility, but identifying ways to better exploit such models remains an open problem. Additionally, the balance between task generalization and task-specific fine-tuning presents a crucial tradeoff for real-world usability, especially in constrained environments such as edge computing or private deployments.
+    # """
+
+    # proposition_idea = """
+    # We propose Dynamic Prompt Assembly (DPA), a novel technique where prompts are generated dynamically based on the model's intermediate outputs and task requirements. Instead of relying on static prompt templates, DPA allows the model to iteratively refine and assemble its own prompts by evaluating intermediate outputs during inference. This self-assembly process introduces a layer of model-driven reasoning at runtime, leading to adaptive performance improvements across diverse tasks. By leveraging lightweight dynamic adjustments, this method ensures performance close to state-of-the-art large models, while remaining feasible for smaller architectures such as gemma-2-2b-it.
+    # DPA can also serve as an efficient fine-tuning alternative, reducing the need for extensive retraining while allowing the model to specialize incrementally on specific tasks through real-time prompt modulation. This technique promises to bridge the gap between small models' capabilities and real-world demands, offering a pathway to deploy effective, cost-efficient AI solutions.
+    # """
 
     # save research_idea_generation_prompt with its outputs as a json file
     prompt_and_output = {
