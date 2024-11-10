@@ -177,6 +177,10 @@ ICLR2022-OpenReviewData/
 # Project specific directories
 **/artifacts/
 **/dataset/
+workspace/src/
+workspace/test/
+workspace/**/src/
+workspace/**/test/
 
 # Generated files
 result.pdf
